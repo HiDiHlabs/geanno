@@ -4,13 +4,13 @@ from copy import deepcopy
 
 class GenomicRegionAnnotator():
 	def __init__(self):
-	'''
-		Standard Constructor. Creates an empty GenomicRegionAnnotator.
-
-		args: None
-
-		kwargs: None
-	'''
+		'''
+			Standard Constructor. Creates an empty GenomicRegionAnnotator.
+	
+			args: None
+	
+			kwargs: None
+		'''
 		# Set database against which to None. Will be pandas.DataFrame
 		# object containing the following columns: 
 		# FILENAME: Absolute path to the file 
@@ -54,11 +54,15 @@ class GenomicRegionAnnotator():
 
 		# Check if necessary fields are defined
 		columns = set(self.__database.columns)
-		required_fields = ["FILENAME", "REGION.TYPE", "FILE.ID", "ANNOTATION.TYPE", "MAX.DISTANCE", "DISTANCE.TO"]
+		required_fields = ["FILENAME", "REGION.TYPE", "FILE.ID", "ANNOTATION.TYPE", 
+					"MAX.DISTANCE", "DISTANCE.TO"]
 		for required_field in required_fields:
 			if(not required_field in columns):
 				self.__database = None
-				print(required_field+" is a required column in the database file but not found in "+datbase_filename+". Please update your database file!")
+				print(required_field+(" is a required column in the"
+							"database file but not found"
+							"in ")+database_filename+("."
+							"Please update your database file!"))
 				break
 
 	def load_database_from_dataframe(self, database_dataframe):
@@ -84,12 +88,18 @@ class GenomicRegionAnnotator():
 
 		# Check if necessary fields are defined
 		columns = set(self.__database.columns)
-		required_fields = ["FILENAME", "REGION.TYPE", "FILE.ID", "ANNOTATION.TYPE", "MAX.DISTANCE", "DISTANCE.TO"]
+		required_fields = ["FILENAME", "REGION.TYPE", "FILE.ID", "ANNOTATION.TYPE", 
+					"MAX.DISTANCE", "DISTANCE.TO"]
 		for required_field in required_fields:
 			if(not required_field in columns):
 				self.__database = None
-				print(required_field+" is a required column in the database DataFrame but not found. Please update your database DataFrame!")
+				print(required_field+(" is a required column in the database"
+							"DataFrame but not found. Please update" 
+							"your database DataFrame!"))
 				break
 
 	def print_database(self):
+		'''
+			Method that porints the database.
+		'''
 		print(self.__database)
