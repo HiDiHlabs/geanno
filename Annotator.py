@@ -1,6 +1,7 @@
 import pybedtools
 import pandas as pnd
 from copy import deepcopy
+import os
 
 class GenomicRegionAnnotator():
 	def __init__(self):
@@ -15,7 +16,7 @@ class GenomicRegionAnnotator():
 		# object containing the following columns: 
 		# FILENAME: Absolute path to the file 
 		# REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
-		# FILE.ID: E.g., Cell type from which regions are derived
+		# SOURCE: E.g., Cell type from which regions are derived
 		# ANNOTATION.TYPE: overlap | distance
 		# MAX.DISTANCE: If ANNOTATION.TYPE is distance, then the max
 		# distance has to be defined
@@ -29,14 +30,18 @@ class GenomicRegionAnnotator():
 		# object
 		self.__base = None
 		
+	############################
+	# Methods for data loading #
+	############################
+
 	def load_database_from_file(self, database_filename):
 		'''
 			Method for loading a database from a tab separated file.
 			The database contains all files against which the annotation
 			shall be performed. Required columns are
-			FILENAME: Absolute path to the file 
+			FILENAME: Absolute path to the file (must be a bed like file)
 			REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
-			FILE.ID: E.g., Cell type from which regions are derived
+			SOURCE: E.g., Cell type from which regions are derived
 			ANNOTATION.TYPE: overlap | distance
 			MAX.DISTANCE: If ANNOTATION.TYPE is distance, then the max
 			distance has to be defined
@@ -54,16 +59,17 @@ class GenomicRegionAnnotator():
 
 		# Check if necessary fields are defined
 		columns = set(self.__database.columns)
-		required_fields = ["FILENAME", "REGION.TYPE", "FILE.ID", "ANNOTATION.TYPE", 
+		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.TYPE", 
 					"MAX.DISTANCE", "DISTANCE.TO"]
 		for required_field in required_fields:
 			if(not required_field in columns):
 				self.__database = None
-				print(required_field+(" is a required column in the"
-							"database file but not found"
-							"in ")+database_filename+("."
-							"Please update your database file!"))
-				break
+				raise(TypeError(required_field+(" is a required column in the database "
+                                                        "DataFrame but not found. Please update "
+                                                        "your database DataFrame!")))
+
+		# Check if files in __database exist
+		self.__check_database()
 
 	def load_database_from_dataframe(self, database_dataframe):
 		'''
@@ -72,7 +78,7 @@ class GenomicRegionAnnotator():
 			shall be performed. Required columns are
 			FILENAME: Absolute path to the file 
 			REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
-			FILE.ID: E.g., Cell type from which regions are derived
+			SOURCE: E.g., Cell type from which regions are derived
 			ANNOTATION.TYPE: overlap | distance
 			MAX.DISTANCE: If ANNOTATION.TYPE is distance, then the max
 			distance has to be defined
@@ -88,18 +94,77 @@ class GenomicRegionAnnotator():
 
 		# Check if necessary fields are defined
 		columns = set(self.__database.columns)
-		required_fields = ["FILENAME", "REGION.TYPE", "FILE.ID", "ANNOTATION.TYPE", 
+		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.TYPE", 
 					"MAX.DISTANCE", "DISTANCE.TO"]
 		for required_field in required_fields:
 			if(not required_field in columns):
 				self.__database = None
-				print(required_field+(" is a required column in the database"
-							"DataFrame but not found. Please update" 
-							"your database DataFrame!"))
-				break
+				raise(TypeError(required_field+(" is a required column in the database "
+                                                        "DataFrame but not found. Please update "
+                                                        "your database DataFrame!")))
+		
+		# Check if files in __database exist
+		self.__check_database()
+
+	def load_base_from_file(self, base_filename):
+		'''
+			Function that loads base file, that will be annotated against
+			annotation database.
+
+			args:
+				base_filename: string
+					First three columns must be bed-like, i.e.
+					containing chromosome, start-, and end-
+					position. Must contain a header.
+		'''
+		self.__base = pnd.read_csv(base_filename, sep="\t")
+		# Check if __base contains header and is bed-like
+		self.__check_base()
+
+		self.__base.index = [ "_".join([ str(e) for e in r.iloc[:3] ]) for i, r in self.__base.iterrows() ]
+		
 
 	def print_database(self):
 		'''
-			Method that porints the database.
+			Method that prints the database.
 		'''
 		print(self.__database)
+
+	def print_base(self):
+		'''
+			Method that prints base.
+		'''
+		print(self.__base)
+
+	#####################
+	# Private Functions #
+	#####################
+
+	def __check_database(self):
+		'''
+			Checks if files in database exist!
+		'''
+		if(self.__database is None):
+			print("No annotation database defined yet!")
+		else:
+			for index, row in self.__database.iterrows():
+				filename = row["FILENAME"]
+				if(not(os.path.exists(filename))):
+					raise(IOError(filename+" does not exist!"))
+
+	def __check_base(self):
+		'''
+			Checks if base, that will be annotated is bed-like, and
+			contains a header
+		'''
+		if(not self.__base.columns[0][0] == "#"):
+			raise(ValueError(("Base table does not contain a "
+					"valid haeder! Header has to start with \"#\"")))
+		for index, row in self.__base.iterrows():
+			if(not(type(row.iloc[1]) == int and type(row.iloc[2]) == int)):
+				raise(TypeError(("Base table does not seem to be bed-like. "
+						"Second and third columns must be integers.")))
+			elif(not(row.iloc[2] > row.iloc[1])):
+				raise(TypeError(("Base table does not seem to be bed-like. "
+						"Second column must be smaller or equal to third "
+						"column.")))
