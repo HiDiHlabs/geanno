@@ -4,6 +4,10 @@ from copy import deepcopy
 import os
 
 class GenomicRegionAnnotator():
+	#############################
+	# Constructors/ Destructors #
+	#############################
+
 	def __init__(self):
 		'''
 			Standard Constructor. Creates an empty GenomicRegionAnnotator.
@@ -29,10 +33,14 @@ class GenomicRegionAnnotator():
 		# List will be filled with filename, and pybedtools.BedTool
 		# object
 		self.__base = None
-		
-	############################
-	# Methods for data loading #
-	############################
+
+
+	##################
+	# Public methods #
+	##################
+
+	######################
+	# Data loading methods
 
 	def load_database_from_file(self, database_filename):
 		'''
@@ -122,7 +130,32 @@ class GenomicRegionAnnotator():
 		self.__check_base()
 
 		self.__base.index = [ "_".join([ str(e) for e in r.iloc[:3] ]) for i, r in self.__base.iterrows() ]
+
+		# Create pybedtools.BedTool pbject from self.__base
+		self.__base_bed = self.__create_bed4(self.__base)
+
+	def load_base_from_dataframe(self, base_dataframe):
+		'''
+			Function that loads base dataframe, that will be annotated against
+			annotation database.
+
+			args:
+				base_dataframe: pandas.DataFrame
+					First three columns must be bed-like, i.e.
+					containing chromosome, start-, and end-
+					position. Must contain a header.
+		'''
+		self.__base = deepcopy(base_dataframe)
+		# Check if __base contains header and is bed-like
+		self.__check_base()
+
+		self.__base.index = [ "_".join([ str(e) for e in r.iloc[:3] ]) for i, r in self.__base.iterrows() ]
 		
+		# Create pybedtools.BedTool pbject from self.__base
+		self.__base_bed = self.__create_bed4(self.__base)
+
+	###############
+	# Print methods
 
 	def print_database(self):
 		'''
@@ -136,9 +169,10 @@ class GenomicRegionAnnotator():
 		'''
 		print(self.__base)
 
-	#####################
-	# Private Functions #
-	#####################
+
+	###################
+	# Private Methods #
+	###################
 
 	def __check_database(self):
 		'''
@@ -168,3 +202,20 @@ class GenomicRegionAnnotator():
 				raise(TypeError(("Base table does not seem to be bed-like. "
 						"Second column must be smaller or equal to third "
 						"column.")))
+
+	def __create_bed4(self, df):
+		'''
+			Method that creates a bed4 pybedtools.BedTool object
+			from df. Columns are: 1. Chromosome, 2. Start,
+			3. End, 4. Name (<chrom>_<start>_<end>)
+
+			args:
+				df: pnd.DataFrame
+		'''
+		bed_list = []
+		
+		for index, row in df.iterrows():
+			bed_list += [ "\t".join([ str(e) for e in row.iloc[:3] ]+
+					[ "_".join([ str(e) for e in row.iloc[:3] ]) ]) ]
+
+		return pybedtools.BedTool("\n".join(bed_list), from_string=True)
