@@ -34,6 +34,10 @@ class GenomicRegionAnnotator():
 		# object
 		self.__base = None
 
+		# Set pybedtools.BedTool object, that contains data of 
+		# self.__base as bed4 BedTool object to None
+		self.__base_bed = None
+
 
 	##################
 	# Public methods #
@@ -154,6 +158,77 @@ class GenomicRegionAnnotator():
 		# Create pybedtools.BedTool pbject from self.__base
 		self.__base_bed = self.__create_bed4(self.__base)
 
+	####################
+	# Annotation methods
+	def annotate(self):
+		'''
+			Method, that annotats the base region table against the ROI tables
+			in the database.
+		'''
+		# Check if all necessary objects are defined
+		if(self.__base is None):
+			raise(NameError(("Base regions are not defined! Please define them "
+					"using either of load_base_from_file or "
+					"load_base_from_dataframe method.")))
+		elif(self.__database is None):
+			raise(NameError(("Database regions are not defined! Please define them "
+					"using either of load_database_from_file or "
+					"load_database_from_dataframe method.")))
+
+		# Perform Annotation
+		for index, row in self.__database.iterrows():
+			# Check if annotation was already performed and continue if True
+			if(self.__anno_done(row["REGION.TYPE"], row["SOURCE"], row["ANNOTATION.TYPE"])):
+				print(("Annotation DONE for "+row["REGION.TYPE"]+" "+row["SOURCE"]+
+					" "+row["ANNOTATION.TYPE"]))
+				continue
+			else:
+				# Perform overlap based annotation
+				if(row["ANNOTATION.TYPE"] == "overlap"):
+					if(not row["REGION.TYPE"] in self.__base.columns):
+						# Initiate new column if self.__base with "NA"
+						self.__base[row["REGION.TYPE"]] = ["NA"]*len(self.__base.index)
+
+					anno_bed = pybedtools.BedTool(row["FILENAME"])
+					intersect_bed = self.__base_bed.intersect(anno_bed, wa=True, u=True)
+					for e in intersect_bed:
+						anno_string = self.__base.loc[e[3], row["REGION.TYPE"]]
+						if(not anno_string == "NA"):
+							anno_string += ";"+row["SOURCE"]
+						else:
+							anno_string = row["SOURCE"]
+						self.__base.loc[e[3], row["REGION.TYPE"]] = anno_string
+
+				# Perform distance based annotation
+				elif(row["ANNOTATION.TYPE"] == "distance"):
+					# Initiate new column if self.__base with "NA"
+					self.__base[row["REGION.TYPE"]] = ["NA"]*len(self.__base.index)
+					
+					anno_bed = self.__create_bed6_single_base(row["FILENAME"], row["DISTANCE.TO"]).sort()
+					closest_bed = self.__base_bed.sort().closest(anno_bed, d=True)
+
+					for e in closest_bed:
+						name_roi = str(e[7])
+						chrom_roi = str(e[4])
+						start_roi = int(e[5])
+						end_roi = int(e[6])
+						strand_roi = str(e[9])
+						distance = int(e[-1])
+						if(not chrom_roi == "none"):
+							if(not distance == 0):
+								if(strand_roi == "+"):
+									if(start_roi > int(e[2])):
+										distance = -1*distance
+								elif(strand_roi == "-"):
+									if(end_roi < int(e[1])):
+										distance = -1*distance
+						anno_string = self.__base.loc[e[3], row["REGION.TYPE"]]
+						if(not(anno_string == "NA")):
+							anno_string += ";"+name_roi+"("+str(distance)+")"
+						else:
+							anno_string = name_roi+"("+str(distance)+")"
+						self.__base.loc[e[3], row["REGION.TYPE"]] = anno_string
+
 	###############
 	# Print methods
 
@@ -169,6 +244,14 @@ class GenomicRegionAnnotator():
 		'''
 		print(self.__base)
 
+	################
+	# Getter methods
+
+	def get_base(self):
+		'''
+			Method that return self.__base
+		'''
+		return deepcopy(self.__base)
 
 	###################
 	# Private Methods #
@@ -220,16 +303,60 @@ class GenomicRegionAnnotator():
 
 		return pybedtools.BedTool("\n".join(bed_list), from_string=True)
 
+	def __create_bed6_single_base(self, bed_filename, pos):
+		'''
+			Create a bed6 pybedtools.BedTool object using single base
+			at start-, end- or midpoint of region.
+
+			args:
+				bed_filename: string
+					Path to bed file used for creating BedTool
+					object.
+				pos: string
+					base position relative to intervall used 
+					for creating the BedTool object. Can be
+					either of START | END | MID. START, and
+					END are relative to strand.
+		'''
+		bed_list = []
+		bed_file = open(bed_filename, "r")
+		for line in bed_file:
+			if(line[0] == "#"):
+				continue
+			split_line = line.rstrip().split("\t")
+			chrom = split_line[0]
+			start = int(split_line[1])
+			end = int(split_line[2])
+			name = split_line[3]
+			strand = split_line[5]
+
+			if(pos == "START"):
+				if(strand == "+"):
+					end = start+1
+				else:
+					start = end-1
+			elif(pos == "END"):
+				if(strand == "-"):
+					start = end-1
+				else:
+					end = start+1
+			elif(pos == "MID"):
+				start = start+int((end-start)/2)
+				end = start + 1
+			bed_list += [ "\t".join([chrom, str(start), str(end), name, "NA", strand]) ]
+
+		return pybedtools.BedTool("\n".join(bed_list), from_string=True)
+
 	def __anno_done(self, region_type, source, annotation_type):
 		'''
 			Method that checks if annotation is already done for
 			region_type, source, annotation_type combo.
 		'''
-		if(not region_type in set(self.__base.index)):
+		if(not region_type in set(self.__base.columns)):
 			return False
-		elif( annotation_type in set(self.__base.index) ):
-			sources = set(sum([], [ e.split(";") for e in self.__base.loc[:, region_type] ]))
+		elif( annotation_type == "overlap" ):
+			sources = set(sum([ e.split(";") for e in self.__base.loc[:, region_type] ], []))
 			if(not source in sources):
 				return False
 		else:
-			return True	
+			return True
