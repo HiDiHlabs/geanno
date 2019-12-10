@@ -219,3 +219,17 @@ class GenomicRegionAnnotator():
 					[ "_".join([ str(e) for e in row.iloc[:3] ]) ]) ]
 
 		return pybedtools.BedTool("\n".join(bed_list), from_string=True)
+
+	def __anno_done(self, region_type, source, annotation_type):
+		'''
+			Method that checks if annotation is already done for
+			region_type, source, annotation_type combo.
+		'''
+		if(not region_type in set(self.__base.index)):
+			return False
+		elif( annotation_type in set(self.__base.index) ):
+			sources = set(sum([], [ e.split(";") for e in self.__base.loc[:, region_type] ]))
+			if(not source in sources):
+				return False
+		else:
+			return True	
