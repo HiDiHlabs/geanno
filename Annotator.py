@@ -358,5 +358,7 @@ class GenomicRegionAnnotator():
 			sources = set(sum([ e.split(";") for e in self.__base.loc[:, region_type] ], []))
 			if(not source in sources):
 				return False
+			else:
+				return True
 		else:
 			return True
