@@ -21,12 +21,13 @@ class GenomicRegionAnnotator():
 		# FILENAME: Absolute path to the file 
 		# REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
 		# SOURCE: E.g., Cell type from which regions are derived
-		# ANNOTATION.TYPE: overlap | distance
+		# ANNOTATION.BY: NAME | SOURCE
 		# MAX.DISTANCE: If ANNOTATION.TYPE is distance, then the max
 		# distance has to be defined
 		# DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
 		# be defined what the location is to which the distance shall
-		# be computed. Can be START | END | MID
+		# be computed. Can be START | END | MID | REGION
+		# N.HITS: Van be either of ALL | CLOSEST
 		self.__database = None
 
 		# Set regions that shall be annotated to None.
@@ -54,12 +55,13 @@ class GenomicRegionAnnotator():
 			FILENAME: Absolute path to the file (must be a bed like file)
 			REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
 			SOURCE: E.g., Cell type from which regions are derived
-			ANNOTATION.TYPE: overlap | distance
+			ANNOTATION.BY: SOURCE | NAME
 			MAX.DISTANCE: If ANNOTATION.TYPE is distance, then the max
 			distance has to be defined
 			DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
 			be defined what the location is to which the distance shall
 			be computed. Can be START | END | MID
+			N.HITS: Can be either of ALL | CLOSEST
 
 			args:
 				database_filename: string
@@ -71,8 +73,8 @@ class GenomicRegionAnnotator():
 
 		# Check if necessary fields are defined
 		columns = set(self.__database.columns)
-		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.TYPE", 
-					"MAX.DISTANCE", "DISTANCE.TO"]
+		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY", 
+					"MAX.DISTANCE", "DISTANCE.TO", "N.HITS"]
 		for required_field in required_fields:
 			if(not required_field in columns):
 				self.__database = None
@@ -91,12 +93,13 @@ class GenomicRegionAnnotator():
 			FILENAME: Absolute path to the file 
 			REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
 			SOURCE: E.g., Cell type from which regions are derived
-			ANNOTATION.TYPE: overlap | distance
+			ANNOTATION.BY: SOURCE | NAME
 			MAX.DISTANCE: If ANNOTATION.TYPE is distance, then the max
 			distance has to be defined
 			DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
 			be defined what the location is to which the distance shall
 			be computed. Can be START | END | MID
+			N.HITS: Can be either of ALL | CLOSEST
 
 			args:
 				database_dataframe: pandas.DataFrame
@@ -106,8 +109,8 @@ class GenomicRegionAnnotator():
 
 		# Check if necessary fields are defined
 		columns = set(self.__database.columns)
-		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.TYPE", 
-					"MAX.DISTANCE", "DISTANCE.TO"]
+		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY", 
+					"MAX.DISTANCE", "DISTANCE.TO", "N.HITS"]
 		for required_field in required_fields:
 			if(not required_field in columns):
 				self.__database = None
@@ -162,7 +165,7 @@ class GenomicRegionAnnotator():
 	# Annotation methods
 	def annotate(self):
 		'''
-			Method, that annotats the base region table against the ROI tables
+			Method, that annotates the base region table against the ROI tables
 			in the database.
 		'''
 		# Check if all necessary objects are defined
@@ -175,59 +178,57 @@ class GenomicRegionAnnotator():
 					"using either of load_database_from_file or "
 					"load_database_from_dataframe method.")))
 
-		# Perform Annotation
 		for index, row in self.__database.iterrows():
-			# Check if annotation was already performed and continue if True
-			if(self.__anno_done(row["REGION.TYPE"], row["SOURCE"], row["ANNOTATION.TYPE"])):
-				print(("Annotation DONE for "+row["REGION.TYPE"]+" "+row["SOURCE"]+
-					" "+row["ANNOTATION.TYPE"]))
+			max_distance = row["MAX.DISTANCE"]
+			annotation_by = row["ANNOTATION.BY"]
+			n_hits = row["N.HITS"]
+			filename = row["FILENAME"]
+			region_type = row["REGION.TYPE"]
+			current_source = row["SOURCE"]
+			distance_to = row["DISTANCE.TO"]
+
+			# Check if annotation was already done
+			if(self.__anno_done(region_type, current_source, annotation_by)):
+				print(("Annotation DONE for "+region_type+" "+current_source+
+                                       " "+annotation_by))
 				continue
 			else:
-				# Perform overlap based annotation
-				if(row["ANNOTATION.TYPE"] == "overlap"):
-					if(not row["REGION.TYPE"] in self.__base.columns):
-						# Initiate new column if self.__base with "NA"
-						self.__base[row["REGION.TYPE"]] = ["NA"]*len(self.__base.index)
-
-					anno_bed = pybedtools.BedTool(row["FILENAME"])
-					intersect_bed = self.__base_bed.intersect(anno_bed, wa=True, u=True)
-					for e in intersect_bed:
-						anno_string = self.__base.loc[e[3], row["REGION.TYPE"]]
-						if(not anno_string == "NA"):
-							anno_string += ";"+row["SOURCE"]
-						else:
-							anno_string = row["SOURCE"]
-						self.__base.loc[e[3], row["REGION.TYPE"]] = anno_string
-
-				# Perform distance based annotation
-				elif(row["ANNOTATION.TYPE"] == "distance"):
+				if(not region_type in self.__base.columns):
 					# Initiate new column if self.__base with "NA"
 					self.__base[row["REGION.TYPE"]] = ["NA"]*len(self.__base.index)
-					
-					anno_bed = self.__create_bed6_single_base(row["FILENAME"], row["DISTANCE.TO"]).sort()
-					closest_bed = self.__base_bed.sort().closest(anno_bed, d=True)
+				anno_bed = self.__create_bed6_single_base(filename, 
+									distance_to, 
+									annotation_by, 
+									max_distance, 
+									source=current_source)
+				# intersect base intervalls with database intervalls
+				intersect_bed = self.__base_bed.intersect(anno_bed, wa=True, wb=True)
+				intersect_dict = {}
+				for e in intersect_bed:
+					if(e[-1] == 0):
+						continue
+					distance = self.__calculate_distance(e)
+					db_name = e[7].split("(")[0]
+					if(not e[3] in intersect_dict):
+						intersect_dict[e[3]] = [[db_name+"("+str(distance)+")", distance]]
+					else:
+						intersect_dict[e[3]] += [[db_name+"("+str(distance)+")", distance]]
+				for base_name in intersect_dict.keys():
+					anno_string = self.__base.loc[base_name, region_type]
+					overlap_list = intersect_dict[base_name]
+					overlap_list_sorted = sorted(overlap_list, 
+										key = lambda a: abs(a[1]))
+					result_string = None
+					if(n_hits == "ALL"):
+						result_string = ";".join([ ol[0] for ol in overlap_list_sorted ])
+					else:
+						result_string = overlap_list_sorted[0][0]
+					if(anno_string == "NA"):
+						anno_string = result_string
+					else:
+						anno_string += ";"+result_string
+					self.__base.loc[base_name, region_type] = anno_string
 
-					for e in closest_bed:
-						name_roi = str(e[7])
-						chrom_roi = str(e[4])
-						start_roi = int(e[5])
-						end_roi = int(e[6])
-						strand_roi = str(e[9])
-						distance = int(e[-1])
-						if(not chrom_roi == "none"):
-							if(not distance == 0):
-								if(strand_roi == "+"):
-									if(start_roi > int(e[2])):
-										distance = -1*distance
-								elif(strand_roi == "-"):
-									if(end_roi < int(e[1])):
-										distance = -1*distance
-						anno_string = self.__base.loc[e[3], row["REGION.TYPE"]]
-						if(not(anno_string == "NA")):
-							anno_string += ";"+name_roi+"("+str(distance)+")"
-						else:
-							anno_string = name_roi+"("+str(distance)+")"
-						self.__base.loc[e[3], row["REGION.TYPE"]] = anno_string
 
 	###############
 	# Print methods
@@ -303,7 +304,7 @@ class GenomicRegionAnnotator():
 
 		return pybedtools.BedTool("\n".join(bed_list), from_string=True)
 
-	def __create_bed6_single_base(self, bed_filename, pos):
+	def __create_bed6_single_base(self, bed_filename, pos, annotation_by, max_distance, source=None):
 		'''
 			Create a bed6 pybedtools.BedTool object using single base
 			at start-, end- or midpoint of region.
@@ -315,8 +316,19 @@ class GenomicRegionAnnotator():
 				pos: string
 					base position relative to intervall used 
 					for creating the BedTool object. Can be
-					either of START | END | MID. START, and
-					END are relative to strand.
+					either of START | END | MID | REGION. START, 
+					and END are relative to strand.
+				annotation_by: string
+					Shall name (as defined in 4th column of 
+					bed_filename), or source as defined in 
+					database be used for annotation. Can be
+					either of NAME | SOURCE.
+				max_distance: int
+					Maximum distance between base and database
+					intervalls used to connect intervalls.
+				source: string
+					Has to be defined if annotation_by is SOURCE.
+				
 		'''
 		bed_list = []
 		bed_file = open(bed_filename, "r")
@@ -327,8 +339,16 @@ class GenomicRegionAnnotator():
 			chrom = split_line[0]
 			start = int(split_line[1])
 			end = int(split_line[2])
-			name = split_line[3]
-			strand = split_line[5]
+			if(len(split_line) < 4):
+				name = "_".join(split_line[:3])
+			else:
+				name = split_line[3]
+			strand = "+"
+			if(len(split_line) >= 6):
+				strand = split_line[5]
+			if(annotation_by == "SOURCE"):
+				name = source
+			name += "("+"_".join(split_line[:3])+")"
 
 			if(pos == "START"):
 				if(strand == "+"):
@@ -343,22 +363,72 @@ class GenomicRegionAnnotator():
 			elif(pos == "MID"):
 				start = start+int((end-start)/2)
 				end = start + 1
+
+			start = start - max_distance if (start - max_distance) > 0 else 0
+			end = end + max_distance
+
 			bed_list += [ "\t".join([chrom, str(start), str(end), name, "NA", strand]) ]
 
 		return pybedtools.BedTool("\n".join(bed_list), from_string=True)
 
-	def __anno_done(self, region_type, source, annotation_type):
+	def __anno_done(self, region_type, source, annotation_by):
 		'''
 			Method that checks if annotation is already done for
 			region_type, source, annotation_type combo.
 		'''
 		if(not region_type in set(self.__base.columns)):
 			return False
-		elif( annotation_type == "overlap" ):
-			sources = set(sum([ e.split(";") for e in self.__base.loc[:, region_type] ], []))
+		elif( annotation_by == "SOURCE" ):
+			sources = sum([ e.split(";") for e in self.__base.loc[:, region_type] ], [])
+			sources = set( [ e.split("(")[0] for e in sources ] )
 			if(not source in sources):
 				return False
 			else:
 				return True
 		else:
 			return True
+
+	def __calculate_distance(self, e):
+		'''
+			Method that calculates the distance between two intervalls.
+			
+			Args:
+				e: pybedtools.Intervall
+					e[0]: Chromosome base intervall
+					e[1]: Start base intervall
+					e[2]: End base intervall
+					e[3]: Name base intervall (<chrom>_<start>_<end>)
+					e[4]: Chromosome db intervall
+					e[5]: Extended start db intervall 
+					e[6]: Extended end db intervall
+					e[7]: Name db intervall (<name>(<chrom>_<start>_<end>))
+					e[8]: "NA"
+					e[9]: Strand db intervall
+
+			Returns:
+				distance: integer
+					Distance between two intervalls
+		'''
+		base_name = str(e[3])
+		base_region = base_name
+		base_region_split = base_region.split("_")
+		base_start = int(base_region_split[1])
+		base_end = int(base_region_split[2])
+		db_region = str(e[7]).split("(")[1][:-1]
+		db_region_split = db_region.split("_")
+		db_start = int(db_region_split[1])
+		db_end = int(db_region_split[2])
+		db_strand = str(e[9])
+
+		distance = 0
+		if(db_end < base_start):
+			distance = base_start - db_end
+			if(db_strand == "-"):
+				distance = -1*distance
+		elif(base_end < db_start):
+			distance = db_start - base_end
+			if(db_strand == "-"):
+				distance = -1*distance
+
+		return distance
+
