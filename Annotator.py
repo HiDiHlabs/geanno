@@ -56,8 +56,9 @@ class GenomicRegionAnnotator():
 			REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
 			SOURCE: E.g., Cell type from which regions are derived
 			ANNOTATION.BY: SOURCE | NAME
-			MAX.DISTANCE: If ANNOTATION.TYPE is distance, then the max
-			distance has to be defined
+			MAX.DISTANCE: Maximal distance between base and database
+			intervall, such that database intervall is anotated to base
+			intervall.
 			DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
 			be defined what the location is to which the distance shall
 			be computed. Can be START | END | MID
@@ -71,18 +72,7 @@ class GenomicRegionAnnotator():
 		'''
 		self.__database = pnd.read_csv(database_filename, sep="\t")
 
-		# Check if necessary fields are defined
-		columns = set(self.__database.columns)
-		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY", 
-					"MAX.DISTANCE", "DISTANCE.TO", "N.HITS"]
-		for required_field in required_fields:
-			if(not required_field in columns):
-				self.__database = None
-				raise(TypeError(required_field+(" is a required column in the database "
-                                                        "DataFrame but not found. Please update "
-                                                        "your database DataFrame!")))
-
-		# Check if files in __database exist
+		# Check if __database is correctly defined
 		self.__check_database()
 
 	def load_database_from_dataframe(self, database_dataframe):
@@ -94,8 +84,9 @@ class GenomicRegionAnnotator():
 			REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
 			SOURCE: E.g., Cell type from which regions are derived
 			ANNOTATION.BY: SOURCE | NAME
-			MAX.DISTANCE: If ANNOTATION.TYPE is distance, then the max
-			distance has to be defined
+			MAX.DISTANCE: Maximal distance between base and database
+			intervall, such that database intervall is anotated to base
+			intervall.
 			DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
 			be defined what the location is to which the distance shall
 			be computed. Can be START | END | MID
@@ -107,17 +98,6 @@ class GenomicRegionAnnotator():
 		'''
 		self.__database = deepcopy(database_dataframe)
 
-		# Check if necessary fields are defined
-		columns = set(self.__database.columns)
-		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY", 
-					"MAX.DISTANCE", "DISTANCE.TO", "N.HITS"]
-		for required_field in required_fields:
-			if(not required_field in columns):
-				self.__database = None
-				raise(TypeError(required_field+(" is a required column in the database "
-                                                        "DataFrame but not found. Please update "
-                                                        "your database DataFrame!")))
-		
 		# Check if files in __database exist
 		self.__check_database()
 
@@ -260,8 +240,19 @@ class GenomicRegionAnnotator():
 
 	def __check_database(self):
 		'''
-			Checks if files in database exist!
+			Checks if database is consistently defined.
 		'''
+		# Check if necessary fields are defined
+		columns = set(self.__database.columns)
+		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY", 
+					"MAX.DISTANCE", "DISTANCE.TO", "N.HITS"]
+		for required_field in required_fields:
+			if(not required_field in columns):
+				self.__database = None
+				raise(TypeError(required_field+(" is a required column in the database "
+                                                        "but not found. Please update your database!")))
+
+		# Check if files in database exist!
 		if(self.__database is None):
 			print("No annotation database defined yet!")
 		else:
@@ -273,7 +264,7 @@ class GenomicRegionAnnotator():
 	def __check_base(self):
 		'''
 			Checks if base, that will be annotated is bed-like, and
-			contains a header
+			contains a header.
 		'''
 		if(not self.__base.columns[0][0] == "#"):
 			raise(ValueError(("Base table does not contain a "
