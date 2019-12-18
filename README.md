@@ -4,7 +4,7 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 
 Help on module pyanno.Annotator in pyanno:
 
-class GenomicRegionAnnotator()
+**class GenomicRegionAnnotator()**
 
 ```python
 __init__(self)
@@ -15,17 +15,7 @@ __init__(self)
     kwargs: None
 ```
 
-```
-annotate(self)
-    Method, that annotates the base region table against the ROI tables
-    in the database.
-```
-
-```
-get_base(self)
-    Method that return self.__base
-```
-
+```python
 load_base_from_dataframe(self, base_dataframe)
     Function that loads base dataframe, that will be annotated against
     annotation database.
@@ -35,7 +25,9 @@ load_base_from_dataframe(self, base_dataframe)
                     First three columns must be bed-like, i.e.
                     containing chromosome, start-, and end-
                     position. Must contain a header.
+```
 
+```python
 load_base_from_file(self, base_filename)
     Function that loads base file, that will be annotated against
     annotation database.
@@ -45,7 +37,9 @@ load_base_from_file(self, base_filename)
                     First three columns must be bed-like, i.e.
                     containing chromosome, start-, and end-
                     position. Must contain a header.
+```
 
+```python
 load_database_from_dataframe(self, database_dataframe)
     Method for loading a database from a pandas.DataFrame.
     The database contains all files against which the annotation
@@ -68,7 +62,9 @@ load_database_from_dataframe(self, database_dataframe)
     args:
             database_dataframe: pandas.DataFrame
                     DataFrame that contains the database.
+```
 
+```python
 load_database_from_file(self, database_filename)
     Method for loading a database from a tab separated file.
     The database contains all files against which the annotation
@@ -93,18 +89,26 @@ load_database_from_file(self, database_filename)
                     Absolute pathe to the tab separated file
                     containing information about the files that
                     shall be annotated to the base file.
+```
 
+```python
+annotate(self)
+    Method, that annotates the base region table against the ROI tables
+    in the database.
+```
+
+
+```python
+get_base(self)
+    Method that return self.__base
+```
+
+```python
 print_base(self)
     Method that prints base.
+```
 
+```python
 print_database(self)
     Method that prints the database.
-
-----------------------------------------------------------------------
-Data descriptors defined here:
-
-__dict__
-    dictionary for instance variables (if defined)
-
-__weakref__
-    list of weak references to the object (if defined)
+```
