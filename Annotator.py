@@ -61,8 +61,11 @@ class GenomicRegionAnnotator():
 			intervall.
 			DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
 			be defined what the location is to which the distance shall
-			be computed. Can be START | END | MID
+			be computed. Can be START | END | MID | REGION
 			N.HITS: Can be either of ALL | CLOSEST
+			NAME.COL: If ANNOTATION.BY == NAME, then you can define the
+			column (0-based) in which the name is stored. If NAME.COL ==
+			NA, then it is assumed, that the 4th column contains the name.
 
 			args:
 				database_filename: string
@@ -70,7 +73,7 @@ class GenomicRegionAnnotator():
 					containing information about the files that
 					shall be annotated to the base file.
 		'''
-		self.__database = pnd.read_csv(database_filename, sep="\t")
+		self.__database = pnd.read_csv(database_filename, sep="\t", keep_default_na=False)
 
 		# Check if __database is correctly defined
 		self.__check_database()
@@ -89,8 +92,11 @@ class GenomicRegionAnnotator():
 			intervall.
 			DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
 			be defined what the location is to which the distance shall
-			be computed. Can be START | END | MID
+			be computed. Can be START | END | MID | REGION
 			N.HITS: Can be either of ALL | CLOSEST
+			NAME.COL: If ANNOTATION.BY == NAME, then you can define the
+			column (0-based) in which the name is stored. If NAME.COL ==
+			NA, then it is assumed, that the 4th column contains the name.
 
 			args:
 				database_dataframe: pandas.DataFrame
@@ -150,11 +156,11 @@ class GenomicRegionAnnotator():
 		'''
 		# Check if all necessary objects are defined
 		if(self.__base is None):
-			raise(NameError(("Base regions are not defined! Please define them "
+			raise(RuntimeError(("Base regions are not defined! Please define them "
 					"using either of load_base_from_file or "
 					"load_base_from_dataframe method.")))
 		elif(self.__database is None):
-			raise(NameError(("Database regions are not defined! Please define them "
+			raise(RuntimeError(("Database regions are not defined! Please define them "
 					"using either of load_database_from_file or "
 					"load_database_from_dataframe method.")))
 
@@ -166,6 +172,7 @@ class GenomicRegionAnnotator():
 			region_type = row["REGION.TYPE"]
 			current_source = row["SOURCE"]
 			distance_to = row["DISTANCE.TO"]
+			name_col = row["NAME.COL"] if row["NAME.COL"] == "NA" else int(row["NAME.COL"])
 
 			# Check if annotation was already done
 			if(self.__anno_done(region_type, current_source, annotation_by)):
@@ -176,11 +183,12 @@ class GenomicRegionAnnotator():
 				if(not region_type in self.__base.columns):
 					# Initiate new column if self.__base with "NA"
 					self.__base[row["REGION.TYPE"]] = ["NA"]*len(self.__base.index)
-				anno_bed = self.__create_bed6_single_base(filename, 
-									distance_to, 
-									annotation_by, 
-									max_distance, 
-									source=current_source)
+				anno_bed = self.__create_bed6(filename, 
+								distance_to, 
+								annotation_by, 
+								max_distance, 
+								source=current_source,
+								name_col=name_col)
 				# intersect base intervalls with database intervalls
 				intersect_bed = self.__base_bed.intersect(anno_bed, wa=True, wb=True)
 				intersect_dict = {}
@@ -245,11 +253,11 @@ class GenomicRegionAnnotator():
 		# Check if necessary fields are defined
 		columns = set(self.__database.columns)
 		required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY", 
-					"MAX.DISTANCE", "DISTANCE.TO", "N.HITS"]
+					"MAX.DISTANCE", "DISTANCE.TO", "N.HITS", "NAME.COL"]
 		for required_field in required_fields:
 			if(not required_field in columns):
 				self.__database = None
-				raise(TypeError(required_field+(" is a required column in the database "
+				raise(RuntimeError(required_field+(" is a required column in the database "
                                                         "but not found. Please update your database!")))
 
 		# Check if files in database exist!
@@ -259,7 +267,32 @@ class GenomicRegionAnnotator():
 			for index, row in self.__database.iterrows():
 				filename = row["FILENAME"]
 				if(not(os.path.exists(filename))):
-					raise(IOError(filename+" does not exist!"))
+					raise(RuntimeError(filename+" does not exist!"))
+
+		# Check if there are many entries for the same REGION.TYPE, that in this case
+		# ANNOTATION.BY has to be SOURCE in all cases.
+		region_type_dict = {}
+		for index, row in self.__database.iterrows():
+			region_type = row["REGION.TYPE"]
+			annotation_by = row["ANNOTATION.BY"]
+
+			if(not region_type in region_type_dict):
+				region_type_dict[region_type] = [annotation_by]
+			else:
+				region_type_dict[region_type] += [annotation_by]
+
+		for region_type in region_type_dict.keys():
+			if(region_type_dict[region_type].count("NAME") > 1):
+				raise(RuntimeError(("Database contains more than one entry with the "
+						"same REGION.TYPE ("+region_type+"), while ANNOTATION.BY " 
+						"is set to \"NAME\". Please define distinct \"REGION.TYPE\" "
+						"IDs, if you want to annotate the names of different database "
+						"intervals!")))
+			elif(len(set(region_type_dict[region_type])) > 1):
+				raise(RuntimeError(("Database contains two entries with different ANNOTATION.BY "
+						"values for the same \"REGION.TYPE\" ID ("+region_type+")! "
+						"Please define a distinct \"REGION.TYPE\" ID for the database "
+						"entry, that has \"ANNOTATION.BY\" set to \"NAME\"!")))
 
 	def __check_base(self):
 		'''
@@ -267,14 +300,14 @@ class GenomicRegionAnnotator():
 			contains a header.
 		'''
 		if(not self.__base.columns[0][0] == "#"):
-			raise(ValueError(("Base table does not contain a "
+			raise(RuntimeError(("Base table does not contain a "
 					"valid haeder! Header has to start with \"#\"")))
 		for index, row in self.__base.iterrows():
 			if(not(type(row.iloc[1]) == int and type(row.iloc[2]) == int)):
-				raise(TypeError(("Base table does not seem to be bed-like. "
+				raise(RuntimeError(("Base table does not seem to be bed-like. "
 						"Second and third columns must be integers.")))
 			elif(not(row.iloc[2] > row.iloc[1])):
-				raise(TypeError(("Base table does not seem to be bed-like. "
+				raise(RuntimeError(("Base table does not seem to be bed-like. "
 						"Second column must be smaller or equal to third "
 						"column.")))
 
@@ -295,7 +328,7 @@ class GenomicRegionAnnotator():
 
 		return pybedtools.BedTool("\n".join(bed_list), from_string=True)
 
-	def __create_bed6_single_base(self, bed_filename, pos, annotation_by, max_distance, source=None):
+	def __create_bed6(self, bed_filename, pos, annotation_by, max_distance, source=None, name_col="NA"):
 		'''
 			Create a bed6 pybedtools.BedTool object using single base
 			at start-, end- or midpoint of region.
@@ -319,6 +352,9 @@ class GenomicRegionAnnotator():
 					intervalls used to connect intervalls.
 				source: string
 					Has to be defined if annotation_by is SOURCE.
+				name_col: integer
+					Column (zero-based) containing the name of
+					the intervals.
 				
 		'''
 		bed_list = []
@@ -326,20 +362,29 @@ class GenomicRegionAnnotator():
 		for line in bed_file:
 			if(line[0] == "#"):
 				continue
-			split_line = line.rstrip().split("\t")
+			split_line = line.rstrip("\r\n").split("\t")
 			chrom = split_line[0]
 			start = int(split_line[1])
 			end = int(split_line[2])
-			if(len(split_line) < 4):
-				name = "_".join(split_line[:3])
+
+			# Define name of interval
+			name = None
+			if(annotation_by == "NAME"):
+				if(not name_col == "NA"):
+					name = split_line[name_col]
+				else:
+					if(len(split_line) < 4):
+						name = "_".join(split_line[:3])
+					else:
+						name = split_line[3]
 			else:
-				name = split_line[3]
-			strand = "+"
-			if(len(split_line) >= 6):
-				strand = split_line[5]
-			if(annotation_by == "SOURCE"):
 				name = source
 			name += "("+"_".join(split_line[:3])+")"
+
+			# Define strand of interval
+			strand = "+"
+			if(self.__is_bed6_like(bed_filename)):
+				strand = split_line[5]
 
 			if(pos == "START"):
 				if(strand == "+"):
@@ -361,6 +406,36 @@ class GenomicRegionAnnotator():
 			bed_list += [ "\t".join([chrom, str(start), str(end), name, "NA", strand]) ]
 
 		return pybedtools.BedTool("\n".join(bed_list), from_string=True)
+
+	def __is_bed6_like(self, bed_filename):
+		'''
+			Method that checks if bed_filename is bed6 like format.
+		'''
+		bed_file = open(bed_filename, "r")
+		strands = []
+		# Check first 100 lines
+		c = 0
+		for line in bed_file:
+			c += 1
+			if(c >= 100):
+				break
+			if(line[0] == "#"):
+				continue
+			split_line = line.rstrip().split("\t")
+			if(not(len(split_line) >= 6)):
+				return False
+			else:
+				strands += [split_line[5]]
+		bed_file.close()
+
+		strands = set(strands)
+
+		if(len(strands) == 2 and "+" in strands and "-" in strands):
+			return True
+		elif(len(strands) == 1 and ("+" in strands or "-" in strands)):
+			return True
+		else:
+			return False
 
 	def __anno_done(self, region_type, source, annotation_by):
 		'''
