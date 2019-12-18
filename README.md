@@ -6,19 +6,25 @@ Help on module pyanno.Annotator in pyanno:
 
 class GenomicRegionAnnotator()
 
+```
 __init__(self)
     Standard Constructor. Creates an empty GenomicRegionAnnotator.
     
     args: None
     
     kwargs: None
+```
 
+```
 annotate(self)
     Method, that annotates the base region table against the ROI tables
     in the database.
+```
 
+```
 get_base(self)
     Method that return self.__base
+```
 
 load_base_from_dataframe(self, base_dataframe)
     Function that loads base dataframe, that will be annotated against
