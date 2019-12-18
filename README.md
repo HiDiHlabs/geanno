@@ -6,7 +6,7 @@ Help on module pyanno.Annotator in pyanno:
 
 class GenomicRegionAnnotator()
 
-```
+```python
 __init__(self)
     Standard Constructor. Creates an empty GenomicRegionAnnotator.
     
