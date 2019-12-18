@@ -379,7 +379,6 @@ class GenomicRegionAnnotator():
 						name = split_line[3]
 			else:
 				name = source
-			name += "("+"_".join(split_line[:3])+")"
 
 			# Define strand of interval
 			strand = "+"
@@ -399,6 +398,7 @@ class GenomicRegionAnnotator():
 			elif(pos == "MID"):
 				start = start+int((end-start)/2)
 				end = start + 1
+			name += "("+"_".join([split_line[0], str(start), str(end)])+")"
 
 			start = start - max_distance if (start - max_distance) > 0 else 0
 			end = end + max_distance
