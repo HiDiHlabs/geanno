@@ -59,8 +59,7 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
     MAX.DISTANCE: Maximal distance between base and database
     intervall, such that database intervall is anotated to base
     intervall.
-    DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
-    be defined what the location is to which the distance shall
+    DISTANCE.TO: The location to which the distance shall
     be computed. Can be START | END | MID | REGION
     N.HITS: Can be either of ALL | CLOSEST
     NAME.COL: If ANNOTATION.BY == NAME, then you can define the
@@ -86,8 +85,7 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
     MAX.DISTANCE: Maximal distance between base and database
     intervall, such that database intervall is anotated to base
     intervall.
-    DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
-    be defined what the location is to which the distance shall
+    DISTANCE.TO: The location to which the distance shall
     be computed. Can be START | END | MID | REGION
     N.HITS: Can be either of ALL | CLOSEST
     NAME.COL: If ANNOTATION.BY == NAME, then you can define the
