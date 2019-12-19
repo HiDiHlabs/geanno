@@ -14,6 +14,7 @@ The base interval entries can in addition contain an arbitrary number of additio
 
 ```
 # base.bed
+#chrom	start	end
 4       128887787       128887839
 4       188862197       188862251
 4       185746125       185746231
@@ -109,7 +110,15 @@ gra.annotate()
 annotated_base_df = gra.get_base()
 
 # Write annotated base intervals to disk
-annotated_base_df.to_csv("/home/biegm/tmp/annotated_dmrs.csv", sep="\t", index=False)
+annotated_base_df.to_csv(results_filename, sep="\t", index=False)
+```
+
+```
+#results.bed
+#chrom  start   end     Enhancer.Roadmap        gencode19.protein.coding.TSS    PCHiC.neutrophils
+4       128887787       128887839       E036(0) ENSG00000164073.5(-637) PGRMC2(0);PGRMC2(1001);PGRMC2(2881);PGRMC2(7442)
+4       188862197       188862251       NA      ENSG00000179059.5(54674)        NA
+4       185746125       185746231       NA      ENSG00000151726.9(-1740)        ACSL1(3864)
 ```
 
 ## Help on module pyanno.Annotator in pyanno:

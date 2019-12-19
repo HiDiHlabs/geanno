@@ -303,7 +303,8 @@ class GenomicRegionAnnotator():
 			raise(RuntimeError(("Base table does not contain a "
 					"valid haeder! Header has to start with \"#\"")))
 		for index, row in self.__base.iterrows():
-			if(not(type(row.iloc[1]) == int and type(row.iloc[2]) == int)):
+			if(not(str(row.iloc[1]).isdigit() and str(row.iloc[2]).isdigit())):
+				print(type(row.iloc[1]))
 				raise(RuntimeError(("Base table does not seem to be bed-like. "
 						"Second and third columns must be integers.")))
 			elif(not(row.iloc[2] > row.iloc[1])):
