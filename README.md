@@ -12,6 +12,13 @@ The base file of intervals, that will be annotated against a database of bed lik
 
 The base interval entries can in addition contain an arbitrary number of additional columns.
 
+```
+# base.bed
+4       128887787       128887839
+4       188862197       188862251
+4       185746125       185746231
+```
+
 ### Database file
 The datbase file is a tab separated file, containing information about the genomic regions of interest, that shall be annotated to the base file. The database file contains the following information:
 * **FILENAME**: Absolute path to the file 
@@ -23,12 +30,7 @@ The datbase file is a tab separated file, containing information about the genom
 * **N.HITS**: Can be either of ALL | CLOSEST
 * **NAME.COL**: If ANNOTATION.BY == NAME, then you can define the column (0-based) in which the name is stored. If NAME.COL == NA, then it is assumed, that the 4th column contains the name.
 
-```
-# base.bed
-4       128887787       128887839
-4       188862197       188862251
-4       185746125       185746231
-```
+The first line of the tsv file must contain the above **bold** column identifiers!
 
 ## Help on module pyanno.Annotator in pyanno:
 
