@@ -120,7 +120,6 @@ annotated_base_df.to_csv(results_filename, sep="\t", index=False)
 ```
 #results.bed
 #chrom  start   end     Enhancer.Roadmap        gencode19.protein.coding.TSS    PCHiC.neutrophils
-#chrom  start   end     Enhancer.Roadmap        gencode19.protein.coding.TSS    PCHiC.neutrophils
 4       128887787       128887839       E036(0) MFSD8(-637)     PGRMC2(0);PGRMC2(1001);PGRMC2(2881);PGRMC2(7442)
 4       188862197       188862251       NA      ZFP42(54674)    NA
 4       185746125       185746231       NA      ACSL1(-1740)    ACSL1(3864)
