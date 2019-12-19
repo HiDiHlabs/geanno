@@ -2,6 +2,22 @@
 
 pyanno is a python package that - given a list of genomic intervals - annotates these intervals to arbitrary genomic intervals of interest, as well as genes. The list of genomic intervals to be annotated, as well as the database interval regions of interest have to be encoded in a bed-like format.
 
+## Example
+
+### Base file
+The base file of intervals, that will be annotated against a database of bed like files, that contain genomic intervals of interest has to be itself bed-like. It suffuces that the first three lines follow bed conventions, i.e. 
+* 1st column: Chromosome
+* 2nd column: Start position (0-based)
+* 3rd column: End position (1-based)
+The base interval entries can in addition contain an arbitrary number of additional columns.
+
+'''
+# base.bed
+4       128887787       128887839
+4       188862197       188862251
+4       185746125       185746231
+''''
+
 ## Help on module pyanno.Annotator in pyanno:
 
 ### class GenomicRegionAnnotator()
