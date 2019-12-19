@@ -32,6 +32,14 @@ The datbase file is a tab separated file, containing information about the genom
 
 The first line of the tsv file must contain the above **bold** column identifiers!
 
+```
+FILENAME        REGION.TYPE     SOURCE  ANNOTATION.BY   MAX.DISTANCE    DISTANCE.TO     N.HITS  NAME.COL
+E045_15_coreMarks_dense_7_Enh.bed    Enhancer.Roadmap        E045    SOURCE  0       REGION  CLOSEST NA
+E036_15_coreMarks_dense_7_Enh.bed    Enhancer.Roadmap        E036    SOURCE  0       REGION  CLOSEST NA
+protein_coding_genes.bed gencode19.protein.coding.TSS    gencode.v19     NAME    200000  START   CLOSEST NA
+enhancer_promoter_links_neutrophils.bed      PCHiC.neutrophils       neutrophils     NAME    10000   REGION  ALL     7
+```
+
 ## Help on module pyanno.Annotator in pyanno:
 
 ### class GenomicRegionAnnotator()
