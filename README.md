@@ -9,7 +9,19 @@ The base file of intervals, that will be annotated against a database of bed lik
 * 1st column: Chromosome
 * 2nd column: Start position (0-based)
 * 3rd column: End position (1-based)
+
 The base interval entries can in addition contain an arbitrary number of additional columns.
+
+### Database file
+The datbase file is a tab separated file, containing information about the genomic regions of interest, that shall be annotated to the base file. The database file contains the following information:
+* **FILENAME**: Absolute path to the file 
+* **REGION.TYPE**: E.g. protein.coding.genes, Enhancers, ...
+* **SOURCE**: E.g., Cell type from which regions are derived
+* **ANNOTATION.BY**: SOURCE | NAME
+* **MAX.DISTANCE**: Maximal distance between base and database intervall, such that database intervall is anotated to base intervall.
+* **DISTANCE.TO**: The location to which the distance shall be computed. Can be START | END | MID | REGION
+* **N.HITS**: Can be either of ALL | CLOSEST
+* **NAME.COL**: If ANNOTATION.BY == NAME, then you can define the column (0-based) in which the name is stored. If NAME.COL == NA, then it is assumed, that the 4th column contains the name.
 
 ```
 # base.bed
