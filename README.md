@@ -46,7 +46,7 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 '''
 ```
 
-###load_database_from_dataframe(self, database_dataframe)
+#### load_database_from_dataframe(self, database_dataframe)
 ```python
 '''
     Method for loading a database from a pandas.DataFrame.
@@ -73,7 +73,7 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 '''
 ```
 
-###load_database_from_file(self, database_filename)
+#### load_database_from_file(self, database_filename)
 ```python
 '''
     Method for loading a database from a tab separated file.
