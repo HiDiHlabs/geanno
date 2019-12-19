@@ -33,11 +33,56 @@ The datbase file is a tab separated file, containing information about the genom
 The first line of the tsv file must contain the above **bold** column identifiers!
 
 ```
+# database.tsv
 FILENAME        REGION.TYPE     SOURCE  ANNOTATION.BY   MAX.DISTANCE    DISTANCE.TO     N.HITS  NAME.COL
 E045_15_coreMarks_dense_7_Enh.bed    Enhancer.Roadmap        E045    SOURCE  0       REGION  CLOSEST NA
 E036_15_coreMarks_dense_7_Enh.bed    Enhancer.Roadmap        E036    SOURCE  0       REGION  CLOSEST NA
 protein_coding_genes.bed gencode19.protein.coding.TSS    gencode.v19     NAME    200000  START   CLOSEST NA
 enhancer_promoter_links_neutrophils.bed      PCHiC.neutrophils       neutrophils     NAME    10000   REGION  ALL     7
+```
+
+#### database bed like files
+
+```
+# E045_15_coreMarks_dense_7_Enh.bed
+10      179800  180000  7_Enh   0       .       179800  180000  255,255,0
+10      182800  183200  7_Enh   0       .       182800  183200  255,255,0
+10      265600  266000  7_Enh   0       .       265600  266000  255,255,0
+.
+.
+.
+```
+
+```
+# E036_15_coreMarks_dense_7_Enh.bed
+10      132200  132400  7_Enh   0       .       132200  132400  255,255,0
+10      133400  133600  7_Enh   0       .       133400  133600  255,255,0
+10      152600  153000  7_Enh   0       .       152600  153000  255,255,0
+.
+.
+.
+```
+
+```
+# protein_coding_genes.bed
+#chrom  start   end     ensembl.id      score   strand  hugo.name
+1       69091   70008   ENSG00000186092.4       NA      +       OR4F5
+1       134901  139379  ENSG00000237683.5       NA      -       AL627309.1
+1       367640  368634  ENSG00000235249.1       NA      +       OR4F29
+.
+.
+.
+```
+
+```
+# enhancer_promoter_links_neutrophils.bed
+#oeChr  oeStart oeEnd   oeName  baitChr baitStart       baitEnd baitName
+1       1150970 1156235 .       1       850619  874081  AL645608.1;RP11-54O7.3;SAMD11
+1       1000704 1005126 .       1       903641  927394  C1orf170;PLEKHN1
+1       1150970 1156235 .       1       903641  927394  C1orf170;PLEKHN1
+.
+.
+.
 ```
 
 ## Help on module pyanno.Annotator in pyanno:
