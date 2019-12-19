@@ -10,7 +10,7 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 #### \_\_init\_\_(self)
 ```python
 '''
-	Standard Constructor. Creates an empty GenomicRegionAnnotator._
+	Standard Constructor. Creates an empty GenomicRegionAnnotator.
     
 	args: None
     
@@ -32,8 +32,9 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 '''
 ```
 
+#### load_base_from_file(self, base_filename)
 ```python
-load_base_from_file(self, base_filename)
+'''
     Function that loads base file, that will be annotated against
     annotation database.
     
@@ -42,10 +43,12 @@ load_base_from_file(self, base_filename)
                     First three columns must be bed-like, i.e.
                     containing chromosome, start-, and end-
                     position. Must contain a header.
+'''
 ```
 
+###load_database_from_dataframe(self, database_dataframe)
 ```python
-load_database_from_dataframe(self, database_dataframe)
+'''
     Method for loading a database from a pandas.DataFrame.
     The database contains all files against which the annotation
     shall be performed. Required columns are
@@ -67,10 +70,12 @@ load_database_from_dataframe(self, database_dataframe)
     args:
             database_dataframe: pandas.DataFrame
                     DataFrame that contains the database.
+'''
 ```
 
+###load_database_from_file(self, database_filename)
 ```python
-load_database_from_file(self, database_filename)
+'''
     Method for loading a database from a tab separated file.
     The database contains all files against which the annotation
     shall be performed. Required columns are
@@ -94,26 +99,35 @@ load_database_from_file(self, database_filename)
                     Absolute pathe to the tab separated file
                     containing information about the files that
                     shall be annotated to the base file.
+'''
 ```
 
+#### annotate(self)
 ```python
-annotate(self)
+'''
     Method, that annotates the base region table against the ROI tables
     in the database.
+'''
 ```
 
 
+#### get_base(self)
 ```python
-get_base(self)
+'''
     Method that return self.__base
+'''
 ```
 
+#### print_base(self)
 ```python
-print_base(self)
+'''
     Method that prints base.
+'''
 ```
 
+#### print_database(self)
 ```python
-print_database(self)
+'''
     Method that prints the database.
+'''
 ```
