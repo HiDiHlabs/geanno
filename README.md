@@ -38,7 +38,7 @@ The first line of the tsv file must contain the above **bold** column identifier
 FILENAME        REGION.TYPE     SOURCE  ANNOTATION.BY   MAX.DISTANCE    DISTANCE.TO     N.HITS  NAME.COL
 E045_15_coreMarks_dense_7_Enh.bed    Enhancer.Roadmap        E045    SOURCE  0       REGION  CLOSEST NA
 E036_15_coreMarks_dense_7_Enh.bed    Enhancer.Roadmap        E036    SOURCE  0       REGION  CLOSEST NA
-protein_coding_genes.bed gencode19.protein.coding.TSS    gencode.v19     NAME    200000  START   CLOSEST NA
+protein_coding_genes.bed gencode19.protein.coding.TSS    gencode.v19     NAME    200000  START   CLOSEST 6
 enhancer_promoter_links_neutrophils.bed      PCHiC.neutrophils       neutrophils     NAME    10000   REGION  ALL     7
 ```
 
@@ -120,9 +120,10 @@ annotated_base_df.to_csv(results_filename, sep="\t", index=False)
 ```
 #results.bed
 #chrom  start   end     Enhancer.Roadmap        gencode19.protein.coding.TSS    PCHiC.neutrophils
-4       128887787       128887839       E036(0) ENSG00000164073.5(-637) PGRMC2(0);PGRMC2(1001);PGRMC2(2881);PGRMC2(7442)
-4       188862197       188862251       NA      ENSG00000179059.5(54674)        NA
-4       185746125       185746231       NA      ENSG00000151726.9(-1740)        ACSL1(3864)
+#chrom  start   end     Enhancer.Roadmap        gencode19.protein.coding.TSS    PCHiC.neutrophils
+4       128887787       128887839       E036(0) MFSD8(-637)     PGRMC2(0);PGRMC2(1001);PGRMC2(2881);PGRMC2(7442)
+4       188862197       188862251       NA      ZFP42(54674)    NA
+4       185746125       185746231       NA      ACSL1(-1740)    ACSL1(3864)
 ```
 
 ## Help on module pyanno.Annotator in pyanno:
