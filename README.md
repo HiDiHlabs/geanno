@@ -11,9 +11,9 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 
 _Standard Constructor. Creates an empty GenomicRegionAnnotator._
     
-  args: None
+> args: None
     
-  kwargs: None
+> kwargs: None
 
 ```python
 load_base_from_dataframe(self, base_dataframe)
