@@ -9,25 +9,27 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 
 #### \_\_init\_\_(self)
 ```python
-	'''
+'''
 	Standard Constructor. Creates an empty GenomicRegionAnnotator._
     
 	args: None
     
 	kwargs: None
-	'''
+'''
 ```
 
+#### load_base_from_dataframe(self, base_dataframe)
 ```python
-load_base_from_dataframe(self, base_dataframe)
-    "Function that loads base dataframe, that will be annotated against
+'''
+    Function that loads base dataframe, that will be annotated against
     annotation database."
     
     args:
             base_dataframe: pandas.DataFrame
-                    "First three columns must be bed-like, i.e.
+                    First three columns must be bed-like, i.e.
                     containing chromosome, start-, and end-
-                    position. Must contain a header."
+                    position. Must contain a header.
+'''
 ```
 
 ```python
