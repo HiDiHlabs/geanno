@@ -4,11 +4,11 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 
 ## Help on module pyanno.Annotator in pyanno:
 
-###class GenomicRegionAnnotator()
+### class GenomicRegionAnnotator()
 
 
 #### \_\_init\_\_(self)
-    *Standard Constructor. Creates an empty GenomicRegionAnnotator.*
+    _Standard Constructor. Creates an empty GenomicRegionAnnotator._
     
     args: None
     
