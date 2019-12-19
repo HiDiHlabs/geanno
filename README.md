@@ -11,12 +11,12 @@ The base file of intervals, that will be annotated against a database of bed lik
 * 3rd column: End position (1-based)
 The base interval entries can in addition contain an arbitrary number of additional columns.
 
-'''
+```
 # base.bed
 4       128887787       128887839
 4       188862197       188862251
 4       185746125       185746231
-''''
+```
 
 ## Help on module pyanno.Annotator in pyanno:
 
