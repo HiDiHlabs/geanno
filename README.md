@@ -4,16 +4,15 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 
 ## Help on module pyanno.Annotator in pyanno:
 
-**class GenomicRegionAnnotator()**
+###class GenomicRegionAnnotator()
 
-```python
-__init__(self)
-    "Standard Constructor. Creates an empty GenomicRegionAnnotator."
+
+#### \_\_init\_\_(self)
+    *Standard Constructor. Creates an empty GenomicRegionAnnotator.*
     
     args: None
     
     kwargs: None
-```
 
 ```python
 load_base_from_dataframe(self, base_dataframe)
