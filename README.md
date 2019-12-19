@@ -85,6 +85,33 @@ enhancer_promoter_links_neutrophils.bed      PCHiC.neutrophils       neutrophils
 .
 ```
 
+```python
+import pyanno
+import pandas as pnd
+
+database_filename = "database.tsv"
+base_filename = "base.bed"
+results_filename = "results.bed"
+
+# Create a new GenomicRegionAnnotator instance
+gra = pyanno.Annotator.GenomicRegionAnnotator()
+
+# load base
+gra.load_base_from_file(base_filename)
+
+# load database
+gra.load_database_from_file(database_filename)
+
+# Annotate base against all database genomic region files
+gra.annotate()
+
+# Retrieve annotated base intervals as pandas.DataFrame instance
+annotated_base_df = gra.get_base()
+
+# Write annotated base intervals to disk
+annotated_base_df.to_csv("/home/biegm/tmp/annotated_dmrs.csv", sep="\t", index=False)
+```
+
 ## Help on module pyanno.Annotator in pyanno:
 
 ### class GenomicRegionAnnotator()
