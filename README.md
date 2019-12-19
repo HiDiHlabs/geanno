@@ -8,7 +8,7 @@ pyanno is a python package that - given a list of genomic intervals - annotates 
 
 
 #### \_\_init\_\_(self)
-    _Standard Constructor. Creates an empty GenomicRegionAnnotator._
+_Standard Constructor. Creates an empty GenomicRegionAnnotator._
     
     args: None
     
