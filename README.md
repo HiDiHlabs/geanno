@@ -86,6 +86,8 @@ enhancer_promoter_links_neutrophils.bed      PCHiC.neutrophils       neutrophils
 .
 ```
 
+#### Code example
+
 ```python
 import pyanno
 import pandas as pnd
@@ -112,6 +114,8 @@ annotated_base_df = gra.get_base()
 # Write annotated base intervals to disk
 annotated_base_df.to_csv(results_filename, sep="\t", index=False)
 ```
+
+#### Annotated results file
 
 ```
 #results.bed
