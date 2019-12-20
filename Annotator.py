@@ -74,7 +74,7 @@ class GenomicRegionAnnotator():
                     shall be annotated to the base file.
         '''
         self.__database = pnd.read_csv(database_filename, sep="\t", 
-                                            keep_default_na=False)
+                                        keep_default_na=False)
 
         # Check if __database is correctly defined
         self.__check_database()
@@ -159,13 +159,15 @@ class GenomicRegionAnnotator():
         '''
         # Check if all necessary objects are defined
         if(self.__base is None):
-            raise(RuntimeError(("Base regions are not defined! Please define "
-                    "them using either of load_base_from_file or "
-                    "load_base_from_dataframe method.")))
+            raise(RuntimeError((
+                "Base regions are not defined! Please define "
+                "them using either of load_base_from_file or "
+                "load_base_from_dataframe method.")))
         elif(self.__database is None):
-            raise(RuntimeError(("Database regions are not defined! Please "
-                    "define them using either of load_database_from_file or "
-                    "load_database_from_dataframe method.")))
+            raise(RuntimeError((
+                "Database regions are not defined! Please "
+                "define them using either of load_database_from_file or "
+                "load_database_from_dataframe method.")))
 
         for index, row in self.__database.iterrows():
             max_distance = row["MAX.DISTANCE"]
@@ -262,13 +264,13 @@ class GenomicRegionAnnotator():
         # Check if necessary fields are defined
         columns = set(self.__database.columns)
         required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY", 
-                    "MAX.DISTANCE", "DISTANCE.TO", "N.HITS", "NAME.COL"]
+                            "MAX.DISTANCE", "DISTANCE.TO", "N.HITS", "NAME.COL"]
         for required_field in required_fields:
             if(not required_field in columns):
                 self.__database = None
                 raise(RuntimeError(
                         required_field+(" is a required column in the database "
-                                "but not found. Please update your database!")))
+                        "but not found. Please update your database!")))
 
         # Check if files in database exist!
         if(self.__database is None):
@@ -294,17 +296,18 @@ class GenomicRegionAnnotator():
         for region_type in region_type_dict.keys():
             if(region_type_dict[region_type].count("NAME") > 1):
                 raise(RuntimeError((
-                "Database contains more than one entry with the "
-                "same REGION.TYPE ("+region_type+"), while ANNOTATION.BY " 
-                "is set to \"NAME\". Please define distinct \"REGION.TYPE\" "
-                "IDs, if you want to annotate the names of different database "
-                "intervals!")))
+                    "Database contains more than one entry with the "
+                    "same REGION.TYPE ("+region_type+"), while ANNOTATION.BY " 
+                    "is set to \"NAME\". Please define distinct "
+                    "\"REGION.TYPE\" IDs, if you want to annotate the names of "
+                    "different database intervals!")))
             elif(len(set(region_type_dict[region_type])) > 1):
                 raise(RuntimeError((
-                "Database contains two entries with different ANNOTATION.BY "
-                "values for the same \"REGION.TYPE\" ID ("+region_type+")! "
-                "Please define a distinct \"REGION.TYPE\" ID for the database "
-                "entry, that has \"ANNOTATION.BY\" set to \"NAME\"!")))
+                    "Database contains two entries with different "
+                    "ANNOTATION.BY values for the same \"REGION.TYPE\" ID "
+                    "("+region_type+")! Please define a distinct "
+                    "\"REGION.TYPE\" ID for the database entry, that has "
+                    "\"ANNOTATION.BY\" set to \"NAME\"!")))
 
     def __check_base(self):
         '''
@@ -312,15 +315,18 @@ class GenomicRegionAnnotator():
             contains a header.
         '''
         if(not self.__base.columns[0][0] == "#"):
-            raise(RuntimeError(("Base table does not contain a "
+            raise(RuntimeError((
+                    "Base table does not contain a "
                     "valid haeder! Header has to start with \"#\"")))
         for index, row in self.__base.iterrows():
             if(not(str(row.iloc[1]).isdigit() and str(row.iloc[2]).isdigit())):
                 print(type(row.iloc[1]))
-                raise(RuntimeError(("Base table does not seem to be bed-like. "
+                raise(RuntimeError((
+                        "Base table does not seem to be bed-like. "
                         "Second and third columns must be integers.")))
             elif(not(row.iloc[2] > row.iloc[1])):
-                raise(RuntimeError(("Base table does not seem to be bed-like. "
+                raise(RuntimeError((
+                        "Base table does not seem to be bed-like. "
                         "Second column must be smaller or equal to third "
                         "column.")))
 
