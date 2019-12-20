@@ -295,7 +295,7 @@ class GenomicRegionAnnotator():
 			if(region_type_dict[region_type].count("NAME") > 1):
 				raise(RuntimeError(
                 ("Database contains more than one entry with the "
-				"same REGION.TYPE ("+region_type+"), while ANNOTATION.BY " 
+                "same REGION.TYPE ("+region_type+"), while ANNOTATION.BY " 
 				"is set to \"NAME\". Please define distinct \"REGION.TYPE\" "
 				"IDs, if you want to annotate the names of different database "
 				"intervals!")))
