@@ -123,8 +123,8 @@ class GenomicRegionAnnotator():
         # Check if __base contains header and is bed-like
         self.__check_base()
 
-        self.__base.index = [ "_".join([ str(e) for e in r.iloc[:3] ]) for i, r 
-                                in self.__base.iterrows() ]
+        self.__base.index = [ "_".join([ str(e) for e in r.iloc[:3] ]) for i, r
+                             in self.__base.iterrows() ]
 
         # Create pybedtools.BedTool pbject from self.__base
         self.__base_bed = self.__create_bed4(self.__base)
@@ -144,8 +144,8 @@ class GenomicRegionAnnotator():
         # Check if __base contains header and is bed-like
         self.__check_base()
 
-        self.__base.index = [ "_".join([ str(e) for e in r.iloc[:3] ]) for i, r 
-                                in self.__base.iterrows() ]
+        self.__base.index = [ "_".join([ str(e) for e in r.iloc[:3] ]) for i, r
+                             in self.__base.iterrows() ]
         
         # Create pybedtools.BedTool pbject from self.__base
         self.__base_bed = self.__create_bed4(self.__base)
@@ -183,22 +183,22 @@ class GenomicRegionAnnotator():
             # Check if annotation was already done
             if(self.__anno_done(region_type, current_source, annotation_by)):
                 print(("Annotation DONE for "+region_type+" "+current_source+
-                                       " "+annotation_by))
+                       " "+annotation_by))
                 continue
             else:
                 if(not region_type in self.__base.columns):
                     # Initiate new column if self.__base with "NA"
                     self.__base[row["REGION.TYPE"]] = (["NA"]*
                                                         len(self.__base.index))
-                anno_bed = self.__create_bed6(filename, 
-                                distance_to, 
-                                annotation_by, 
-                                max_distance, 
-                                source=current_source,
-                                name_col=name_col)
+                anno_bed = self.__create_bed6(filename,
+                                              distance_to,
+                                              annotation_by,
+                                              max_distance,
+                                              source=current_source,
+                                              name_col=name_col)
                 # intersect base intervalls with database intervalls
-                intersect_bed = self.__base_bed.intersect(anno_bed, wa=True, 
-                                                            wb=True)
+                intersect_bed = self.__base_bed.intersect(anno_bed, wa=True,
+                                                          wb=True)
                 intersect_dict = {}
                 for e in intersect_bed:
                     if(e[-1] == 0):
@@ -207,19 +207,19 @@ class GenomicRegionAnnotator():
                     db_name = e[7].split("(")[0]
                     if(not e[3] in intersect_dict):
                         intersect_dict[e[3]] = [[db_name+"("+str(distance)+")", 
-                                                distance]]
+                                                 distance]]
                     else:
-                        intersect_dict[e[3]] += [[db_name+"("+str(distance)+")", 
-                                                    distance]]
+                        intersect_dict[e[3]] += [[db_name+"("+str(distance)+")",
+                                                  distance]]
                 for base_name in intersect_dict.keys():
                     anno_string = self.__base.loc[base_name, region_type]
                     overlap_list = intersect_dict[base_name]
-                    overlap_list_sorted = sorted(overlap_list, 
-                                        key = lambda a: abs(a[1]))
+                    overlap_list_sorted = sorted(overlap_list,
+                                                 key = lambda a: abs(a[1]))
                     result_string = None
                     if(n_hits == "ALL"):
-                        result_string = ";".join([ ol[0] for ol in 
-                                                    overlap_list_sorted ])
+                        result_string = ";".join([ ol[0] for ol in
+                                                  overlap_list_sorted ])
                     else:
                         result_string = overlap_list_sorted[0][0]
                     if(anno_string == "NA"):
@@ -263,14 +263,15 @@ class GenomicRegionAnnotator():
         '''
         # Check if necessary fields are defined
         columns = set(self.__database.columns)
-        required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY", 
-                            "MAX.DISTANCE", "DISTANCE.TO", "N.HITS", "NAME.COL"]
+        required_fields = ["FILENAME", "REGION.TYPE", "SOURCE", "ANNOTATION.BY",
+                           "MAX.DISTANCE", "DISTANCE.TO", "N.HITS", "NAME.COL"]
         for required_field in required_fields:
             if(not required_field in columns):
                 self.__database = None
                 raise(RuntimeError(
-                        required_field+(" is a required column in the database "
-                        "but not found. Please update your database!")))
+                    required_field+(" is a required column in the database "
+                                    "but not found. Please update your "
+                                    "database!")))
 
         # Check if files in database exist!
         if(self.__database is None):
