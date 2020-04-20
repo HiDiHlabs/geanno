@@ -190,25 +190,17 @@ class GenomicRegionAnnotator():
                     # Initiate new column if self.__base with "NA"
                     self.__base[row["REGION.TYPE"]] = (["NA"]*
                                                         len(self.__base.index))
-                print("Start create anno bed")
                 anno_bed = self.__create_bed6(filename,
                                               distance_to,
                                               annotation_by,
                                               max_distance,
                                               source=current_source,
                                               name_col=name_col)
-                print("End create anno bed")
                 # intersect base intervalls with database intervalls
-                print("Start intersect")
                 intersect_bed = self.__base_bed.intersect(anno_bed, wa=True,
                                                           wb=True)
-                print("End intersect")
                 intersect_dict = {}
-                c = 0
                 for e in intersect_bed:
-                    if(c % 1000 == 0):
-                        print(c)
-                    c += 1
                     if(e[-1] == 0):
                         continue
                     distance = self.__calculate_distance(e)
@@ -219,14 +211,10 @@ class GenomicRegionAnnotator():
                     else:
                         intersect_dict[e[3]] += [[db_name+"("+str(distance)+")",
                                                   distance]]
-                c = 0
                 base_df_list = []
                 index_tmp = []
                 for base_name, s in self.__base.iterrows():
                     index_tmp += [base_name]
-                    if(c % 1000 == 0):
-                        print(c)
-                    c += 1
                     if(not base_name in intersect_dict):
                         base_df_list += [ list(s) ]
                         continue
