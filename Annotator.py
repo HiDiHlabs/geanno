@@ -190,17 +190,25 @@ class GenomicRegionAnnotator():
                     # Initiate new column if self.__base with "NA"
                     self.__base[row["REGION.TYPE"]] = (["NA"]*
                                                         len(self.__base.index))
+                print("Start create anno bed")
                 anno_bed = self.__create_bed6(filename,
                                               distance_to,
                                               annotation_by,
                                               max_distance,
                                               source=current_source,
                                               name_col=name_col)
+                print("End create anno bed")
                 # intersect base intervalls with database intervalls
+                print("Start intersect")
                 intersect_bed = self.__base_bed.intersect(anno_bed, wa=True,
                                                           wb=True)
+                print("End intersect")
                 intersect_dict = {}
+                c = 0
                 for e in intersect_bed:
+                    if(c % 1000 == 0):
+                        print(c)
+                    c += 1
                     if(e[-1] == 0):
                         continue
                     distance = self.__calculate_distance(e)
@@ -211,8 +219,18 @@ class GenomicRegionAnnotator():
                     else:
                         intersect_dict[e[3]] += [[db_name+"("+str(distance)+")",
                                                   distance]]
-                for base_name in intersect_dict.keys():
-                    anno_string = self.__base.loc[base_name, region_type]
+                c = 0
+                base_df_list = []
+                index_tmp = []
+                for base_name, s in self.__base.iterrows():
+                    index_tmp += [base_name]
+                    if(c % 1000 == 0):
+                        print(c)
+                    c += 1
+                    if(not base_name in intersect_dict):
+                        base_df_list += [ list(s) ]
+                        continue
+                    anno_string = s[region_type]
                     overlap_list = intersect_dict[base_name]
                     overlap_list_sorted = sorted(overlap_list,
                                                  key = lambda a: abs(a[1]))
@@ -226,7 +244,11 @@ class GenomicRegionAnnotator():
                         anno_string = result_string
                     else:
                         anno_string += ";"+result_string
-                    self.__base.loc[base_name, region_type] = anno_string
+                    s[region_type] = anno_string
+                    base_df_list += [ list(s) ]
+                self.__base = pnd.DataFrame(base_df_list,
+                                            columns = self.__base.columns,
+                                           index = index_tmp)
 
 
     ###############
@@ -252,6 +274,17 @@ class GenomicRegionAnnotator():
             Method that return self.__base
         '''
         return deepcopy(self.__base)
+
+    ###############
+    # Other Methods
+    def set_tempdir(self, dirpath):
+        '''
+            Methods that sets temp directory for pybedtools objects
+
+            args:
+                dirpath: string
+        '''
+        pybedtools.set_tempdir(dirpath)
 
     ###################
     # Private Methods #
