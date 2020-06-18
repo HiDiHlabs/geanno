@@ -183,7 +183,6 @@ class GenomicRegionAnnotator():
                         int(row["NAME.COL"]))
 
             # Check if annotation was already done
-            print("Check Anno Done")
             if(self.__anno_done(region_type, current_source, annotation_by)):
                 print(("Annotation DONE for "+region_type+" "+current_source+
                        " "+annotation_by))
@@ -194,22 +193,18 @@ class GenomicRegionAnnotator():
                     self.__base[row["REGION.TYPE"]] = (["NA"]*
                                                         len(self.__base.index))
 
-                print("Create Annotation Bed")
                 anno_bed = self.__create_bed6(filename,
                                               distance_to,
                                               annotation_by,
                                               source=current_source,
                                               name_col=name_col)
 
-                print("Start closest bed")
                 # Determine closest database intervals to base intervals
                 intersect_bed = self.__base_bed.sort().closest(anno_bed.sort(), 
                                                         D="ref",
                                                         k=int(n_hits),
                                                         t="all"
                                                        )
-                print(n_hits)
-                print("Start dict creation")
                 intersect_dict = {}
                 for e in intersect_bed:
                     if(e[-1] == -1):
@@ -226,7 +221,6 @@ class GenomicRegionAnnotator():
                                                   distance]]
                 base_df_list = []
                 index_tmp = []
-                print("Start sorting")
                 for base_name, s in self.__base.iterrows():
                     index_tmp += [base_name]
                     if(not base_name in intersect_dict):
@@ -234,8 +228,6 @@ class GenomicRegionAnnotator():
                         continue
                     anno_string = s[region_type]
                     overlap_list = intersect_dict[base_name]
-#                    overlap_list_sorted = sorted(overlap_list,
-#                                                 key = lambda a: abs(a[1]))
                     overlap_list_sorted = overlap_list
                     result_string = None
                     result_string = ";".join([ ol[0] for ol in
@@ -246,11 +238,9 @@ class GenomicRegionAnnotator():
                         anno_string += ";"+result_string
                     s[region_type] = anno_string
                     base_df_list += [ list(s) ]
-                print("End sorting")
                 self.__base = pnd.DataFrame(base_df_list,
                                             columns = self.__base.columns,
                                            index = index_tmp)
-                print("End loop")
 
 
     ###############
