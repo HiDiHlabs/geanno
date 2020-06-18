@@ -28,7 +28,7 @@ The datbase file is a tab separated file, containing information about the genom
 * **ANNOTATION.BY**: SOURCE | NAME
 * **MAX.DISTANCE**: Maximal distance between base and database intervall, such that database intervall is anotated to base intervall.
 * **DISTANCE.TO**: The location to which the distance shall be computed. Can be START | END | MID | REGION
-* **N.HITS**: Can be either of ALL | CLOSEST
+* **N.HITS**: Integer value defining the number elements from the database that shall be annotated to the base
 * **NAME.COL**: If ANNOTATION.BY == NAME, then you can define the column (0-based) in which the name is stored. If NAME.COL == NA, then it is assumed, that the 4th column contains the name.
 
 The first line of the tsv file must contain the above **bold** column identifiers!

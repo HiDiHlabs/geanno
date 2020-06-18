@@ -2,6 +2,7 @@ import pybedtools
 import pandas as pnd
 from copy import deepcopy
 import os
+import numpy as np
 
 class GenomicRegionAnnotator():
     #############################
@@ -119,7 +120,8 @@ class GenomicRegionAnnotator():
                     containing chromosome, start-, and end-
                     position. Must contain a header.
         '''
-        self.__base = pnd.read_csv(base_filename, sep="\t")
+        self.__base = pnd.read_csv(base_filename, sep="\t", 
+                                   dtype={"start": 'Int64', "end": 'Int64'})
         # Check if __base contains header and is bed-like
         self.__check_base()
 
@@ -181,6 +183,7 @@ class GenomicRegionAnnotator():
                         int(row["NAME.COL"]))
 
             # Check if annotation was already done
+            print("Check Anno Done")
             if(self.__anno_done(region_type, current_source, annotation_by)):
                 print(("Annotation DONE for "+region_type+" "+current_source+
                        " "+annotation_by))
@@ -190,20 +193,30 @@ class GenomicRegionAnnotator():
                     # Initiate new column if self.__base with "NA"
                     self.__base[row["REGION.TYPE"]] = (["NA"]*
                                                         len(self.__base.index))
+
+                print("Create Annotation Bed")
                 anno_bed = self.__create_bed6(filename,
                                               distance_to,
                                               annotation_by,
-                                              max_distance,
                                               source=current_source,
                                               name_col=name_col)
-                # intersect base intervalls with database intervalls
-                intersect_bed = self.__base_bed.intersect(anno_bed, wa=True,
-                                                          wb=True)
+
+                print("Start closest bed")
+                # Determine closest database intervals to base intervals
+                intersect_bed = self.__base_bed.sort().closest(anno_bed.sort(), 
+                                                        D="ref",
+                                                        k=int(n_hits),
+                                                        t="all"
+                                                       )
+                print(n_hits)
+                print("Start dict creation")
                 intersect_dict = {}
                 for e in intersect_bed:
-                    if(e[-1] == 0):
+                    if(e[-1] == -1):
                         continue
-                    distance = self.__calculate_distance(e)
+                    distance = int(e[-1])
+                    if(abs(distance) > max_distance):
+                        continue
                     db_name = e[7].split("(")[0]
                     if(not e[3] in intersect_dict):
                         intersect_dict[e[3]] = [[db_name+"("+str(distance)+")", 
@@ -213,6 +226,7 @@ class GenomicRegionAnnotator():
                                                   distance]]
                 base_df_list = []
                 index_tmp = []
+                print("Start sorting")
                 for base_name, s in self.__base.iterrows():
                     index_tmp += [base_name]
                     if(not base_name in intersect_dict):
@@ -220,23 +234,23 @@ class GenomicRegionAnnotator():
                         continue
                     anno_string = s[region_type]
                     overlap_list = intersect_dict[base_name]
-                    overlap_list_sorted = sorted(overlap_list,
-                                                 key = lambda a: abs(a[1]))
+#                    overlap_list_sorted = sorted(overlap_list,
+#                                                 key = lambda a: abs(a[1]))
+                    overlap_list_sorted = overlap_list
                     result_string = None
-                    if(n_hits == "ALL"):
-                        result_string = ";".join([ ol[0] for ol in
+                    result_string = ";".join([ ol[0] for ol in
                                                   overlap_list_sorted ])
-                    else:
-                        result_string = overlap_list_sorted[0][0]
                     if(anno_string == "NA"):
                         anno_string = result_string
                     else:
                         anno_string += ";"+result_string
                     s[region_type] = anno_string
                     base_df_list += [ list(s) ]
+                print("End sorting")
                 self.__base = pnd.DataFrame(base_df_list,
                                             columns = self.__base.columns,
                                            index = index_tmp)
+                print("End loop")
 
 
     ###############
@@ -369,7 +383,7 @@ class GenomicRegionAnnotator():
 
         return pybedtools.BedTool("\n".join(bed_list), from_string=True)
 
-    def __create_bed6(self, bed_filename, pos, annotation_by, max_distance, 
+    def __create_bed6(self, bed_filename, pos, annotation_by,
                         source=None, name_col="NA"):
         '''
             Create a bed6 pybedtools.BedTool object using single base
@@ -389,9 +403,6 @@ class GenomicRegionAnnotator():
                     bed_filename), or source as defined in 
                     database be used for annotation. Can be
                     either of NAME | SOURCE.
-                max_distance: int
-                    Maximum distance between base and database
-                    intervalls used to connect intervalls.
                 source: string
                     Has to be defined if annotation_by is SOURCE.
                 name_col: integer
@@ -441,9 +452,6 @@ class GenomicRegionAnnotator():
                 start = start+int((end-start)/2)
                 end = start + 1
             name += "("+"_".join([split_line[0], str(start), str(end)])+")"
-
-            start = start - max_distance if (start - max_distance) > 0 else 0
-            end = end + max_distance
 
             bed_list += [ "\t".join([chrom, str(start), str(end), 
                                         name, "NA", strand]) ]
