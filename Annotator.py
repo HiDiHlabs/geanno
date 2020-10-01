@@ -142,15 +142,24 @@ class GenomicRegionAnnotator():
                     containing chromosome, start-, and end-
                     position. Must contain a header.
         '''
+        print("Start copying!")
         self.__base = deepcopy(base_dataframe)
+        print("Copy Done!")
         # Check if __base contains header and is bed-like
         self.__check_base()
+        print("Check Done!")
 
-        self.__base.index = [ "_".join([ str(e) for e in r.iloc[:3] ]) for i, r
-                             in self.__base.iterrows() ]
-        
+        self.__base.index = [ "_".join([str(c), str(s), str(e) ]) for c,s,e
+                             in zip(self.__base["#chrom"],
+                                    self.__base["start"],
+                                    self.__base["end"]) ]
+
+
+        print("Indexing Done!")
+
         # Create pybedtools.BedTool pbject from self.__base
         self.__base_bed = self.__create_bed4(self.__base)
+        print("Bed Creation Done!")
 
     ####################
     # Annotation methods
@@ -184,8 +193,6 @@ class GenomicRegionAnnotator():
 
             # Check if annotation was already done
             if(self.__anno_done(region_type, current_source, annotation_by)):
-                print(("Annotation DONE for "+region_type+" "+current_source+
-                       " "+annotation_by))
                 continue
             else:
                 if(not region_type in self.__base.columns):
@@ -221,13 +228,16 @@ class GenomicRegionAnnotator():
                                                   distance]]
                 base_df_list = []
                 index_tmp = []
-                for base_name, s in self.__base.iterrows():
-                    index_tmp += [base_name]
-                    if(not base_name in intersect_dict):
-                        base_df_list += [ list(s) ]
+                for c,s,e,rt in zip(self.__base["#chrom"],
+                                    self.__base["start"],
+                                    self.__base["end"],
+                                    self.__base[region_type]):
+                    idx = "_".join([str(c), str(s), str(e)])
+                    if(not idx in intersect_dict):
                         continue
-                    anno_string = s[region_type]
-                    overlap_list = intersect_dict[base_name]
+                    index_tmp += [idx]
+                    anno_string = rt
+                    overlap_list = intersect_dict[idx]
                     overlap_list_sorted = overlap_list
                     result_string = None
                     result_string = ";".join([ ol[0] for ol in
@@ -236,11 +246,8 @@ class GenomicRegionAnnotator():
                         anno_string = result_string
                     else:
                         anno_string += ";"+result_string
-                    s[region_type] = anno_string
-                    base_df_list += [ list(s) ]
-                self.__base = pnd.DataFrame(base_df_list,
-                                            columns = self.__base.columns,
-                                           index = index_tmp)
+                    base_df_list += [ anno_string ]
+                self.__base.loc[index_tmp, region_type] = base_df_list
 
 
     ###############
@@ -344,17 +351,24 @@ class GenomicRegionAnnotator():
             raise(RuntimeError((
                     "Base table does not contain a "
                     "valid haeder! Header has to start with \"#\"")))
+
+        # Only Check first 100 entries
+        c = 0
         for index, row in self.__base.iterrows():
+            if(c > 100):
+                break
             if(not(str(row.iloc[1]).isdigit() and str(row.iloc[2]).isdigit())):
                 print(type(row.iloc[1]))
                 raise(RuntimeError((
                         "Base table does not seem to be bed-like. "
                         "Second and third columns must be integers.")))
             elif(not(row.iloc[2] > row.iloc[1])):
+                print(row)
                 raise(RuntimeError((
                         "Base table does not seem to be bed-like. "
                         "Second column must be smaller or equal to third "
                         "column.")))
+            c += 1
 
     def __create_bed4(self, df):
         '''
@@ -367,9 +381,9 @@ class GenomicRegionAnnotator():
         '''
         bed_list = []
         
-        for index, row in df.iterrows():
-            bed_list += [ "\t".join([ str(e) for e in row.iloc[:3] ]+
-                    [ "_".join([ str(e) for e in row.iloc[:3] ]) ]) ]
+        for c,s,e in zip(df["#chrom"], df["start"], df["end"]):
+            bed_list += [ "\t".join([ str(c), str(s), str(e) ]+
+                    [ "_".join([ str(c), str(s), str(e) ]) ]) ]
 
         return pybedtools.BedTool("\n".join(bed_list), from_string=True)
 
@@ -402,6 +416,7 @@ class GenomicRegionAnnotator():
         '''
         bed_list = []
         bed_file = open(bed_filename, "r")
+        is_bed6_like = self.__is_bed6_like(bed_filename)
         for line in bed_file:
             if(line[0] == "#"):
                 continue
@@ -425,7 +440,7 @@ class GenomicRegionAnnotator():
 
             # Define strand of interval
             strand = "+"
-            if(self.__is_bed6_like(bed_filename)):
+            if(is_bed6_like):
                 strand = split_line[5]
 
             if(pos == "START"):
