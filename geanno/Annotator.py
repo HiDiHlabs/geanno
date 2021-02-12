@@ -191,6 +191,8 @@ class GenomicRegionAnnotator():
             name_col = (row["NAME.COL"] if row["NAME.COL"] == "NA" else 
                         int(row["NAME.COL"]))
 
+            print(filename)
+
             # Check if annotation was already done
             if(self.__anno_done(region_type, current_source, annotation_by)):
                 continue
