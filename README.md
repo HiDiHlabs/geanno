@@ -1,6 +1,6 @@
 **Author:** Matthias Bieg
 
-# pyanno: A package for region based annotation
+# geanno: A package for region based annotation
 
 pyanno is a python package that - given a list of genomic intervals - annotates these intervals to arbitrary genomic intervals of interest, as well as genes. The list of genomic intervals to be annotated, as well as the database interval regions of interest have to be encoded in a bed-like format.
 
