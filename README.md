@@ -255,6 +255,11 @@ annotated_base_df.to_csv(results_filename, sep="\t", index=False)
 '''
 ```
 
+# Installation
+```bash
+pip install geanno
+```
+
 # Acknowldedgements
 This package was implemented during my time at *Charite, Universitaetsmedizin Berlin, Berlin Institute of Health (BIH) in the Department of Digital Health* headed by Prof. Roland Eils.
 
