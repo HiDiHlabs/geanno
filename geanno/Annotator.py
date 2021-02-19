@@ -10,12 +10,7 @@ class GenomicRegionAnnotator():
     #############################
 
     def __init__(self):
-        '''
-            Standard Constructor. Creates an empty GenomicRegionAnnotator.
-    
-            args: None
-    
-            kwargs: None
+        '''Standard Constructor. Creates an empty GenomicRegionAnnotator.
         '''
         # Set database against which to None. Will be pandas.DataFrame
         # object containing the following columns: 
@@ -49,60 +44,66 @@ class GenomicRegionAnnotator():
     # Data loading methods
 
     def load_database_from_file(self, database_filename):
-        '''
-            Method for loading a database from a tab separated file.
-            The database contains all files against which the annotation
-            shall be performed. Required columns are
-            FILENAME: Absolute path to the file (must be a bed like file)
-            REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
-            SOURCE: E.g., Cell type from which regions are derived
-            ANNOTATION.BY: SOURCE | NAME
-            MAX.DISTANCE: Maximal distance between base and database
-            intervall, such that database intervall is anotated to base
-            intervall.
-            DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
-            be defined what the location is to which the distance shall
-            be computed. Can be START | END | MID | REGION
-            N.HITS: Can be either of ALL | CLOSEST
-            NAME.COL: If ANNOTATION.BY == NAME, then you can define the
-            column (0-based) in which the name is stored. If NAME.COL ==
-            NA, then it is assumed, that the 4th column contains the name.
+        '''Method for loading a database from a tab separated file. The database
+        contains all files against which the annotation shall be performed.
 
-            args:
-                database_filename: string
-                    Absolute pathe to the tab separated file
-                    containing information about the files that
-                    shall be annotated to the base file.
+        :param database_filename: Path to tab separated database file. The
+            database contains all files against which the annotation shall be
+            performed. Required columns are
+
+            - FILENAME: Absolute path to the file (must be a bed like file)
+            - REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
+            - SOURCE: E.g., Cell type from which regions are derived
+            - ANNOTATION.BY: SOURCE | NAME
+            - MAX.DISTANCE: Maximal distance between base and database \
+intervall, such that database intervall is anotated to base \
+intervall.
+            - DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to be \
+defined what the location is to which the distance shall be \
+computed. Can be START | END | MID | REGION.
+            - N.HITS: Can be either of ALL | CLOSEST
+            - NAME.COL: If ANNOTATION.BY == NAME, then you can define the \
+column (0-based) in which the name is stored. If NAME.COL == NA, then it is \
+assumed, that the 4th column contains the name.
+
+        :type database_filename: str
+
+        :return: Nothing to be returned
+        :rtype: None
         '''
-        self.__database = pnd.read_csv(database_filename, sep="\t", 
+        self.__database = pnd.read_csv(database_filename, sep="\t",
                                         keep_default_na=False)
 
         # Check if __database is correctly defined
         self.__check_database()
 
     def load_database_from_dataframe(self, database_dataframe):
-        '''
-            Method for loading a database from a pandas.DataFrame.
-            The database contains all files against which the annotation
-            shall be performed. Required columns are
-            FILENAME: Absolute path to the file 
-            REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
-            SOURCE: E.g., Cell type from which regions are derived
-            ANNOTATION.BY: SOURCE | NAME
-            MAX.DISTANCE: Maximal distance between base and database
-            intervall, such that database intervall is anotated to base
-            intervall.
-            DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to
-            be defined what the location is to which the distance shall
-            be computed. Can be START | END | MID | REGION
-            N.HITS: Can be either of ALL | CLOSEST
-            NAME.COL: If ANNOTATION.BY == NAME, then you can define the
-            column (0-based) in which the name is stored. If NAME.COL ==
-            NA, then it is assumed, that the 4th column contains the name.
+        '''Method for loading a database from a :class:`pandas.DataFrame`. The
+        database contains all files against which the annotation shall be
+        performed.
 
-            args:
-                database_dataframe: pandas.DataFrame
-                    DataFrame that contains the database.
+        :param database_dataframe: :class:`pandas.DataFrame` object. The
+            database contains all files against which the annotation shall be
+            performed. Required columns are
+
+            - FILENAME: Absolute path to the file (must be a bed like file)
+            - REGION.TYPE: E.g. protein.coding.genes, Enhancers, ...
+            - SOURCE: E.g., Cell type from which regions are derived
+            - ANNOTATION.BY: SOURCE | NAME
+            - MAX.DISTANCE: Maximal distance between base and database \
+intervall, such that database intervall is anotated to base \
+intervall.
+            - DISTANCE.TO: If ANNOTATION.TYPE is distance, then it has to be \
+defined what the location is to which the distance shall be \
+computed. Can be START | END | MID | REGION.
+            - N.HITS: Can be either of ALL | CLOSEST
+            - NAME.COL: If ANNOTATION.BY == NAME, then you can define the \
+column (0-based) in which the name is stored. If NAME.COL == NA, then it is \
+assumed, that the 4th column contains the name.
+        :type database_dataframe: :class:`pandas.DataFrame`
+
+        :return: Nothing to be returned
+        :rtype: None
         '''
         self.__database = deepcopy(database_dataframe)
 
@@ -110,15 +111,17 @@ class GenomicRegionAnnotator():
         self.__check_database()
 
     def load_base_from_file(self, base_filename):
-        '''
-            Function that loads base file, that will be annotated against
-            annotation database.
+        '''Function that loads base file, that will be annotated against
+        annotation database.
 
-            args:
-                base_filename: string
-                    First three columns must be bed-like, i.e.
-                    containing chromosome, start-, and end-
-                    position. Must contain a header.
+        :param base_filename: Path to a bed-like file, that shall be annotated.
+            First three columns must be bed-like, i.e. containing chromosome,
+            start-, and end-position. Must contain a header. First three header
+            entries must be: "#chrom", "start", "end".
+        :type base_filename: str
+
+        :return: Nothing to be returned
+        :rtype: None
         '''
         self.__base = pnd.read_csv(base_filename, sep="\t", 
                                    dtype={"start": 'Int64', "end": 'Int64'})
@@ -132,15 +135,17 @@ class GenomicRegionAnnotator():
         self.__base_bed = self.__create_bed4(self.__base)
 
     def load_base_from_dataframe(self, base_dataframe):
-        '''
-            Function that loads base dataframe, that will be annotated against
-            annotation database.
+        '''Function that loads base from a :class:`pandas.DataFrame`, that will
+        be annotated against annotation database.
 
-            args:
-                base_dataframe: pandas.DataFrame
-                    First three columns must be bed-like, i.e.
-                    containing chromosome, start-, and end-
-                    position. Must contain a header.
+        :param base_dataframe: :class:`pandas.DataFrame` object, that shall be
+            annotated. First three columns must be bed-like, i.e. containing 
+            chromosome, start-, and end-position. Must contain columns: 
+            "#chrom", "start", "end"
+        :type base_dataframe: :class:`pandas.DataFrame`
+
+        :return: Nothing to be returned
+        :rtype: None
         '''
         print("Start copying!")
         self.__base = deepcopy(base_dataframe)
@@ -164,9 +169,11 @@ class GenomicRegionAnnotator():
     ####################
     # Annotation methods
     def annotate(self):
-        '''
-            Method, that annotates the base region table against the ROI tables
-            in the database.
+        '''Method, that annotates the base region table against the ROI tables
+        in the database.
+
+        :return: Nothing to be returned.
+        :rtype: None
         '''
         # Check if all necessary objects are defined
         if(self.__base is None):
@@ -256,14 +263,18 @@ class GenomicRegionAnnotator():
     # Print methods
 
     def print_database(self):
-        '''
-            Method that prints the database.
+        '''Method that prints the database.
+
+        :return: Nothing to be returned.
+        :rtype: None
         '''
         print(self.__database)
 
     def print_base(self):
-        '''
-            Method that prints base.
+        '''Method that prints base.
+
+        :return: Nothing to be returned.
+        :rtype: None
         '''
         print(self.__base)
 
@@ -271,19 +282,23 @@ class GenomicRegionAnnotator():
     # Getter methods
 
     def get_base(self):
-        '''
-            Method that return self.__base
+        '''Method that return self.__base
+
+        :return: Copy of :class:`pandas.DataFrame` object self.__base
+        :rtype: :class:`pandas.DataFrame`
         '''
         return deepcopy(self.__base)
 
     ###############
     # Other Methods
     def set_tempdir(self, dirpath):
-        '''
-            Methods that sets temp directory for pybedtools objects
+        '''Methods that sets temp directory for pybedtools objects
 
-            args:
-                dirpath: string
+        :param dirpath: Path to temp directory.
+        :type dirpath: str
+
+        :return: Nothing to be returned.
+        :rtype: None
         '''
         pybedtools.set_tempdir(dirpath)
 
@@ -292,8 +307,10 @@ class GenomicRegionAnnotator():
     ###################
 
     def __check_database(self):
-        '''
-            Checks if database is consistently defined.
+        '''Checks if database is consistently defined.
+
+        :return: Nothing to be returned.
+        :rtype: None
         '''
         # Check if necessary fields are defined
         columns = set(self.__database.columns)
@@ -345,9 +362,11 @@ class GenomicRegionAnnotator():
                     "\"ANNOTATION.BY\" set to \"NAME\"!")))
 
     def __check_base(self):
-        '''
-            Checks if base, that will be annotated is bed-like, and
-            contains a header.
+        '''Checks if base, that will be annotated is bed-like, and
+        contains a header.
+
+        :return: Nothing to be returned.
+        :rtype: None
         '''
         if(not self.__base.columns[0][0] == "#"):
             raise(RuntimeError((
@@ -373,48 +392,51 @@ class GenomicRegionAnnotator():
             c += 1
 
     def __create_bed4(self, df):
-        '''
-            Method that creates a bed4 pybedtools.BedTool object
-            from df. Columns are: 1. Chromosome, 2. Start,
-            3. End, 4. Name (<chrom>_<start>_<end>)
+        '''Method that creates a bed4 pybedtools.BedTool object from df. Columns
+        are: 1. Chromosome, 2. Start, 3. End, 4. Name (<chrom>_<start>_<end>)
 
-            args:
-                df: pnd.DataFrame
+        :param df: :class:`pandas.DataFrame` object, that will be converted
+            into bed4 :class:`pybedtools.BedTool` object
+        :type df: :class:`pandas.DataFrame`
+
+        :return: :class:`pybedtools.BedTool` object derived from df
+        :rtype: :class:`pybedtools.BedTool`
         '''
         bed_list = []
-        
+
         for c,s,e in zip(df["#chrom"], df["start"], df["end"]):
             bed_list += [ "\t".join([ str(c), str(s), str(e) ]+
                     [ "_".join([ str(c), str(s), str(e) ]) ]) ]
 
         return pybedtools.BedTool("\n".join(bed_list), from_string=True)
 
-    def __create_bed6(self, bed_filename, pos, annotation_by,
-                        source=None, name_col="NA"):
-        '''
-            Create a bed6 pybedtools.BedTool object using single base
-            at start-, end- or midpoint of region.
+    def __create_bed6(self, 
+                      bed_filename, 
+                      pos, 
+                      annotation_by,
+                      source=None, 
+                      name_col="NA"):
+        '''Create a bed6 pybedtools.BedTool object using single base
+        at start-, end- or midpoint of region.
 
-            args:
-                bed_filename: string
-                    Path to bed file used for creating BedTool
-                    object.
-                pos: string
-                    base position relative to intervall used 
-                    for creating the BedTool object. Can be
-                    either of START | END | MID | REGION. START, 
-                    and END are relative to strand.
-                annotation_by: string
-                    Shall name (as defined in 4th column of 
-                    bed_filename), or source as defined in 
-                    database be used for annotation. Can be
-                    either of NAME | SOURCE.
-                source: string
-                    Has to be defined if annotation_by is SOURCE.
-                name_col: integer
-                    Column (zero-based) containing the name of
-                    the intervals.
-                
+        :param bed_filename: Path to bed file used for creating BedTool object.
+        :type bed_filename: str
+        :param pos: base position relative to intervall used for creating the 
+            BedTool object. Can be either of START | END | MID | REGION. START, 
+            and END are relative to strand.
+        :type pos: str
+        :param annotation_by: Shall name (as defined in 4th column of
+            bed_filename), or source as defined in database be used for 
+            annotation. Can be either of NAME | SOURCE.
+        :type annotation_by: str
+        :param source: Has to be defined if annotation_by is SOURCE.
+        :type source: str
+        :param name_col:Column (zero-based) containing the name of the
+            intervals.
+        :type name:col: int
+
+        :return: :class:`pybedtools.BedTool` object derived from bed_filename
+        :rtype: :class:pybedtools.BedTool`
         '''
         bed_list = []
         bed_file = open(bed_filename, "r")
@@ -466,8 +488,13 @@ class GenomicRegionAnnotator():
         return pybedtools.BedTool("\n".join(bed_list), from_string=True)
 
     def __is_bed6_like(self, bed_filename):
-        '''
-            Method that checks if bed_filename is bed6 like format.
+        '''Method that checks if bed_filename is bed6 like format.
+
+        :param bed_filename: Path to bed file
+        :type bed_filename: str
+
+        :return: True, if bed_filename is bed6 like, False otherwise.
+        :rtype: bool
         '''
         bed_file = open(bed_filename, "r")
         strands = []
@@ -496,9 +523,18 @@ class GenomicRegionAnnotator():
             return False
 
     def __anno_done(self, region_type, source, annotation_by):
-        '''
-            Method that checks if annotation is already done for
-            region_type, source, annotation_type combo.
+        '''Method that checks if annotation is already done for region_type, 
+        source, annotation_by combo.
+
+        :param region_type: region type as given in self.__database
+        :type region_type: str
+        :param source: source as given in self.__database
+        :type source: str
+        :annotation_by: annotation_by as given in self.__database. Can be either
+            of SOURCE | NAME
+
+        :return: True, if the annotation was already performed, False otherwise.
+        :rtype: bool
         '''
         if(not region_type in set(self.__base.columns)):
             return False
@@ -514,25 +550,26 @@ class GenomicRegionAnnotator():
             return True
 
     def __calculate_distance(self, e):
-        '''
-            Method that calculates the distance between two intervalls.
-            
-            Args:
-                e: pybedtools.Intervall
-                    e[0]: Chromosome base intervall
-                    e[1]: Start base intervall
-                    e[2]: End base intervall
-                    e[3]: Name base intervall (<chrom>_<start>_<end>)
-                    e[4]: Chromosome db intervall
-                    e[5]: Extended start db intervall 
-                    e[6]: Extended end db intervall
-                    e[7]: Name db intervall (<name>(<chrom>_<start>_<end>))
-                    e[8]: "NA"
-                    e[9]: Strand db intervall
+        '''Method that calculates the distance between two intervalls.
 
-            Returns:
-                distance: integer
-                    Distance between two intervalls
+        :param e: Object of type :class:`pybedtools.Intervall`. The following
+            entries must be contained in e
+
+            - e[0]: Chromosome base intervall
+            - e[1]: Start base intervall
+            - e[2]: End base intervall
+            - e[3]: Name base intervall (<chrom>_<start>_<end>)
+            - e[4]: Chromosome db intervall
+            - e[5]: Extended start db intervall 
+            - e[6]: Extended end db intervall
+            - e[7]: Name db intervall (<name>(<chrom>_<start>_<end>))
+            - e[8]: "NA"
+            - e[9]: Strand db intervall
+
+        :type e: :class:`pybedtools.Intervall`
+
+        :return: Distance between two intervalls
+        :rtype: int
         '''
         base_name = str(e[3])
         base_region = base_name
